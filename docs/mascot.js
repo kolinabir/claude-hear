@@ -373,6 +373,7 @@ export function createMascot(canvas, { still = false } = {}) {
     // sound: off until the visitor turns it on (browsers block sound before a click)
     setSound(v) { sfx.set(v); },
     get soundOn() { return sfx.on; },
+    get soundRunning() { return sfx.running; },
     hop() { s.squash.kick(-2); later(100, () => { s.hop.kick(1.8); s.squash.kick(2); }); },
   };
 

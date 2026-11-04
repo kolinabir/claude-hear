@@ -48,6 +48,7 @@ export function createSfx() {
 
   return {
     get on() { return on; },
+    get running() { return !!ctx && ctx.state === "running"; },
     set(v) {
       on = v;
       if (v) { ensure(); ctx.resume(); } else this.stopRiser();

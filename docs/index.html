@@ -739,23 +739,34 @@ try {
   addEventListener("hear:impact", () => restart(fx, "impact"));
   addEventListener("hear:impact2", () => restart(fx, "impact"));
   addEventListener("hear:burst", () => { fx.classList.remove("charge", "impact"); restart(fx, "burst"); restart(hero, "burst"); });
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) dispatchEvent(new Event("hear:ready"));
-  else m.intro();                                  // the ears attach
-  canvas.addEventListener("dblclick", () => m.intro());
-  // sound: browsers allow it only after a click, so it starts off; turning it on replays the power-up
+  // sound is on by default (unless the visitor turned it off). Browsers only let a page play sound
+  // after a click, tap or key press, so: try now (works where the browser allows), and otherwise
+  // start it on the first interaction, replaying the power-up if the mascot is on screen.
   const snd = document.getElementById("snd");
   snd.hidden = false;
   const store = { get() { try { return localStorage.getItem("hear-sound"); } catch { return null; } },
                   set(v) { try { localStorage.setItem("hear-sound", v); } catch { /* storage blocked */ } } };
-  const setSound = (on, replay) => {
+  const wantSound = store.get() !== "0";
+  snd.setAttribute("aria-pressed", wantSound);
+  if (wantSound) m.setSound(true);
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) dispatchEvent(new Event("hear:ready"));
+  else m.intro();                                  // the power-up
+  canvas.addEventListener("dblclick", () => m.intro());
+  const onScreen = () => { const r = canvas.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  snd.addEventListener("click", () => {
+    const on = snd.getAttribute("aria-pressed") !== "true";
     m.setSound(on); snd.setAttribute("aria-pressed", on); store.set(on ? "1" : "0");
-    if (on && replay) m.intro();
-  };
-  snd.addEventListener("click", () => setSound(!m.soundOn, true));
-  if (store.get() === "1") {           // they turned it on before: switch back on at the first click or key
-    const resume = () => { if (!m.soundOn) setSound(true, false); };
-    addEventListener("pointerdown", resume, { once: true });
-    addEventListener("keydown", resume, { once: true });
+    if (on) m.intro();
+  });
+  if (wantSound) {
+    const unlock = e => {
+      ["pointerdown", "keydown", "touchstart"].forEach(ev => removeEventListener(ev, unlock, true));
+      if (snd.contains(e.target) || snd.getAttribute("aria-pressed") !== "true") return;   // the button handles itself
+      const wasSilent = !m.soundRunning;
+      m.setSound(true);
+      if (wasSilent && onScreen()) m.intro();      // they missed the power-up's sound: play it again, with sound
+    };
+    ["pointerdown", "keydown", "touchstart"].forEach(ev => addEventListener(ev, unlock, true));
   }
   addEventListener("hear:play", () => m.listen());
   addEventListener("hear:word", e => m.word(e.detail));
