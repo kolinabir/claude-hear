@@ -134,6 +134,10 @@ code, .mono, pre { font-family: "JetBrains Mono", ui-monospace, monospace; }
 .pill-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 14px; background: var(--jade); color: var(--jade-ink); transition: transform .15s, box-shadow .15s; }
 .pill-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px -8px rgba(131, 253, 128, .6); }
 .pill-btn svg { width: 16px; height: 16px; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero-cta .pill-btn { height: 50px; padding: 0 24px; font-size: 16px; }
+.ghost-btn { display: inline-flex; align-items: center; height: 50px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--text); font-weight: 600; font-size: 15px; transition: border-color .15s, background .15s; }
+.ghost-btn:hover { border-color: var(--jade); background: rgba(131, 253, 128, .06); }
 
 /* hero: the whole thing is a listening surface */
 .hero { position: relative; padding: 132px 0 0; overflow: hidden; isolation: isolate; }
@@ -414,6 +418,10 @@ footer a:hover { color: var(--text); }
       <span class="eyebrow"><span class="dot"></span>A free skill for Claude Code</span>
       <h1>Claude can <span class="lit"><span>listen</span></span> now.</h1>
         <p class="lede"><strong>hear</strong> turns any audio or video file into a report Claude can read: <strong>who spoke, what they said, and how they said it.</strong> All on your own machine.</p>
+        <div class="hero-cta">
+          <a class="pill-btn" href="#install">Install hear <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="ghost-btn" href="https://github.com/kolinabir/claude-hear">View on GitHub</a>
+        </div>
         <div class="facts" aria-label="Key facts">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>macOS · Windows · Linux</span>
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Free, no API keys</span>
