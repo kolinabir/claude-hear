@@ -1,11 +1,15 @@
 // Sound effects for the mascot, synthesised with Web Audio (no audio files).
 // Silent until set(true), which must happen after a click or key press (browser autoplay rules).
-export function createSfx() {
-  let ctx = null, master = null, meter = null, meterBuf = null, on = false, riser = [], noiseBuf = null;
+// opts.ctx: use this (e.g. an OfflineAudioContext) instead of a live one; opts.now: clock to schedule against
+// (defaults to ctx.currentTime); opts.on: start enabled without the resume handshake (offline rendering).
+export function createSfx(opts = {}) {
+  let ctx = opts.ctx || null, master = null, meter = null, meterBuf = null, on = !!opts.on, riser = [], noiseBuf = null;
+  const now = opts.now || (() => ctx.currentTime);
+  if (ctx) ensure();
 
   function ensure() {
-    if (ctx) return ctx;
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (master) return ctx;
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
     const comp = ctx.createDynamicsCompressor();
     master = ctx.createGain();
     master.gain.value = 0.55;
@@ -26,7 +30,7 @@ export function createSfx() {
   }
 
   function tone(type, f0, f1, dur, peak = 0.3, attack = 0.008, delay = 0) {
-    const t0 = ctx.currentTime + delay, o = ctx.createOscillator(), g = ctx.createGain();
+    const t0 = now() + delay, o = ctx.createOscillator(), g = ctx.createGain();
     o.type = type;
     o.frequency.setValueAtTime(f0, t0);
     o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
@@ -36,7 +40,7 @@ export function createSfx() {
   }
 
   function noise(dur, f0, f1, peak, type = "bandpass", q = 1.2, attack = 0.01, delay = 0) {
-    const t0 = ctx.currentTime + delay, src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    const t0 = now() + delay, src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
     src.buffer = noiseBuf; src.loop = true;
     f.type = type; f.Q.value = q;
     f.frequency.setValueAtTime(f0, t0);
@@ -46,7 +50,7 @@ export function createSfx() {
     src.start(t0); src.stop(t0 + attack + dur + 0.05);
   }
 
-  const ready = () => on && ctx && ctx.state === "running";
+  const ready = () => on && ctx && (ctx.state === "running" || !!opts.on);   // an offline context never reports "running"
 
   return {
     get on() { return on; },
@@ -69,7 +73,7 @@ export function createSfx() {
     riser(dur) {
       if (!ready()) return;
       this.stopRiser();
-      const t0 = ctx.currentTime;
+      const t0 = now();
       const saw = ctx.createOscillator(), sub = ctx.createOscillator(), lp = ctx.createBiquadFilter();
       const trem = ctx.createGain(), lfo = ctx.createOscillator(), lfoAmt = ctx.createGain(), g = ctx.createGain();
       saw.type = "sawtooth"; sub.type = "sine";
@@ -92,7 +96,7 @@ export function createSfx() {
     },
     stopRiser() {
       if (!ctx) return;
-      const t0 = ctx.currentTime;
+      const t0 = now();
       riser.forEach(n => {
         if (n.gain) { n.gain.cancelScheduledValues(t0); n.gain.setTargetAtTime(0.0001, t0, 0.03); }
         else { try { n.stop(t0 + 0.12); } catch { /* already stopped */ } }

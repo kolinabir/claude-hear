@@ -1,0 +1,88 @@
+We gave Claude Code ears
+
+Claude can read your code and look at your screenshots. It cannot hear anything. Drop an interview recording into a Claude Code session and ask "where does she sound unsure?" and you get a polite explanation that it has no audio input.
+
+So I spent a day fixing that. hear is a Claude Code skill: a folder with a SKILL.md and a few Python scripts. Claude runs it on an audio or video file, reads the report it writes, and then it can tell you who spoke, what they said, how they said it, and what else was going on in the room. Everything runs on your own machine. No API key, no upload, no cost.
+
+Page: https://kolinabir.github.io/claude-hear/
+
+
+What it actually gives Claude
+
+Here is a real report from a 17 second clip with two voices. Nothing here is edited.
+
+Speakers (2)
+S1: 70% of the talking, 122 Hz typical pitch
+S2: 30% of the talking, 189 Hz typical pitch
+
+S1 [00:00.0–00:01.8] (205 wpm) Hey↑ Claude, can you↑ hear↑ me? ↘
+S2 [00:02.3–00:04.5] (196 wpm) Wait, since when does it have ears?
+S1 [00:05.1–00:08.9] (171 wpm) Since↑ today, it hears who's talking, and how they say it.↓ ↘
+S1 [00:09.1–00:10.9] (209 wpm) (It) (even) (knows) (when) (I) (whisper.) ↘
+S2 [00:11.6–00:13.5] Okay, ‖0.5s‖ that's terrifying.↓ ↘ {sounds fearful 1.0}
+S1 [00:14.4–00:16.6] (187 wpm) Yeah, and it thinks↑ you sound suspicious. ↘
+
+The marks are the point. A word in double asterisks is louder than that person's normal. A word in brackets is quieter; that whole whispered line came out in brackets. The arrows are pitch jumps relative to the same speaker. ‖0.5s‖ is a pause. ↘ means the line ends falling. [?] means Whisper was not sure of the word. Claude reads this the way it reads any text file, so "where does she sound unsure" becomes a question it can answer: the quiet words, the pauses, the rising endings.
+
+There is also a Sounds section (background music share, a music style guess, and events like laughter, beeps or a noise burst with timestamps) and a spectrogram image Claude can look at when the question is about sound itself.
+
+
+How it works
+
+Five stages, each its own process, each a model you can run on a laptop.
+
+Words: Whisper large-v3-turbo (MLX on Apple Silicon, faster-whisper elsewhere). A transcript with a time and a confidence per word.
+Delivery: pyin pitch and loudness per word. The loud, quiet and arrow marks, the pace, the pauses.
+Speakers: a WeSpeaker voice fingerprint per line. S1, S2, share of talking, typical pitch.
+Emotion: emotion2vec+. The {sounds fearful 1.0} tags, only when it is confident and not neutral.
+Sounds: CLAP for the music share, CED for 527 sound event labels. Music, laughter, beeps, noise, with times.
+
+Whisper runs first. The other four only need its output, so they run together; combined they use less memory than Whisper, so the peak stays where it was. Then one script turns the five result files into the report above.
+
+
+The numbers
+
+Measured on an M4 Mac, models already downloaded.
+
+44 second clip, everything on: about 15 seconds.
+17 second clip: about 9 seconds.
+Peak RAM: about 2 GB (Whisper; on a Mac the GPU side adds about 2 GB of unified memory).
+Models on disk: 2.5 GB, downloaded once.
+Cloud calls: none.
+
+The first version took 45 seconds for the 44 second clip. Most of the gain came from one thing: the sound-tagging stage spent 5 to 12 seconds importing PyTorch to do half a second of work. Swapping it for the ONNX export of the same model (same weights, identical embeddings to four decimal places) cut the stage from 1.8 GB to 0.3 GB of RAM and removed torch from the install entirely. The rest came from running the light stages at the same time.
+
+I also tried things that did not help and kept the notes. 4-bit Whisper gave the same words at the same speed with the same memory. A faster pitch tracker was 30 times quicker but no more accurate on real speech than the one already there, and it moved the pitch marks around, so it stayed out.
+
+
+What broke on real videos
+
+Synthetic test clips all passed, so I ran it on eight real videos from my Downloads folder: two Instagram reels, a Minecraft reel, a raw phone recording, a Facebook explainer, a music-only piece and two WhatsApp videos. Four things were wrong.
+
+Whisper hallucinates on music. The music-only clip came back with two lines of "Thank you." and an emotion guess of "sad 0.9" for them. The Facebook clip ended with a 25-word token loop at a reported 56,400 words per minute, which also created a phantom second speaker. Now a line is dropped when the sound model heard no speech under it, or when it runs faster than any human can talk, and the header says how many were dropped.
+
+The sound events were noise. Thirty lines of "possibly mantra", "possibly radio", "possibly heart murmur" per clip. The music-family labels (150 of them, taken from the AudioSet ontology) now collapse into one "music style guess" line, events need a probability of 0.25 or more (laughter 0.15, because it matters most), and room-ambience labels are never listed.
+
+Phantom speakers. One reel had a single intro line over loud music tagged as a second speaker, because its voice fingerprint scored 0.74 against a 0.75 bar. A speaker with under 10% of the talk whose every line is under loud music or very short, and who still resembles the main voice, is now folded back. The clips with real second and third speakers did not change.
+
+Bengali. Whisper labels Bengali audio as Gujarati at about 45% confidence and writes it in Gujarati script. No trick I tried fixes that automatically. So the report now says "Whisper only 45% sure: re-run with --language", and the skill tells Claude to force bn when the script is wrong. Forced, the transcript is readable Bengali.
+
+After the fixes, the four test clips whose answers I knew produced byte-identical timelines to the first version. That was the rule for the whole day: a change ships only if the correct outputs do not move.
+
+
+What it still gets wrong
+
+Emotion comes from a model trained mostly on acted speech. It leans neutral and can misread casual tone; the skill tells Claude to treat it as a guess. Half-second reactions under music ("Oh, God") are too short to fingerprint and may be attributed to the main speaker. Pitch is only reported for words with clear voicing, about half of them. And none of this has been run on Windows or Linux yet; the installers exist, the engine falls back to CPU, but nobody has pressed the button.
+
+
+Install
+
+You need Claude Code, git, and either an Apple Silicon Mac or a PC with 8 GB of RAM (an NVIDIA card helps, a 4-core CPU works with patience).
+
+npx skills add kolinabir/claude-hear --skill hear -a claude-code -g
+
+(You also need ffmpeg and uv on your PATH; the first listen downloads the models.)
+
+Then open Claude Code and say "listen to ~/Downloads/interview.mp4 and tell me where she sounds unsure."
+
+Page, with a live example and the FAQ: https://kolinabir.github.io/claude-hear/

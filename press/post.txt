@@ -1,0 +1,7 @@
+We gave Claude Code ears.
+
+Drop in any audio or video. Claude reads back who spoke, what they said and how they said it, with the whispers, pauses and laughs marked.
+
+Free, runs on your own machine, about 15 seconds a clip.
+
+npx skills add kolinabir/claude-hear --skill hear -a claude-code -g

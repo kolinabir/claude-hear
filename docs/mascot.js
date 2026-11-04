@@ -77,7 +77,7 @@ class Particles {
   }
 }
 
-export function createMascot(canvas, { still = false } = {}) {
+export function createMascot(canvas, { still = false, sfx: sfxIn = null, earless = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: still });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -160,6 +160,7 @@ export function createMascot(canvas, { still = false } = {}) {
       color: COL.ocean.clone(), target: COL.ocean.clone(), landT: -9, hot: 0, touchT: -9 };
   });
 
+  if (earless) ears.forEach(e => { e.grow.v = e.grow.t = 0; e.grow.vel = 0; e.pivot.visible = false; });
   // face: plain dark eyes, heavy brows, a firm mouth
   const faceZ = 0.68;
   const eyeGeo = new RoundedBoxGeometry(0.18, 0.3, 0.07, rseg, 0.05);
@@ -252,7 +253,7 @@ export function createMascot(canvas, { still = false } = {}) {
   };
   let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
   let phase = "idle", chargeStart = 0, chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
-  const sfx = createSfx();
+  const sfx = sfxIn || createSfx();   // a caller can pass its own (the video capture logs every call)
   const CHARGE = 3.2;                                       // seconds of charging before the burst
   let cupSide = 0, startledUntil = 0;
   let spinStart = -9, dragging = false, dragX = 0, dragMoved = 0, dragVel = 0;
@@ -320,6 +321,7 @@ export function createMascot(canvas, { still = false } = {}) {
   // step 3: the ears grow out of the head in two pulses of energy
   function growEar(e, last) {
     e.pivot.visible = true; e.hot = 1; e.landT = t;
+    earsOn = true;
     e.grow.t = 0.5; e.grow.kick(5); sfx.bloop(false);                        // pulse 1: sprout
     burstSparks(e.side * 1.1, 0.26 + root.position.y, 16, 2.5, COL.white);
     later(500, () => {                                                       // pulse 2: full size, with a shockwave
@@ -369,16 +371,17 @@ export function createMascot(canvas, { still = false } = {}) {
     later(CHARGE * 1000, powerBurst);
   }
 
+  let earsOn = !earless;                                   // earless: no ears until the power-up grows them (the video)
   function cup(side) {                                     // side: +1 right ear (S1), -1 left ear (S2)
     cupSide = side;
-    ears.forEach(e => { const on = e.side === side; e.grow.t = on ? 1.6 : 1; if (on) e.grow.kick(3); e.perk.t = on ? 1.05 : 1; });
+    if (earsOn) ears.forEach(e => { const on = e.side === side; e.grow.t = on ? 1.6 : 1; if (on) e.grow.kick(3); e.perk.t = on ? 1.05 : 1; });
     arms.forEach(a => { a.reach.t = a.side === side ? 0.82 : 0; });
     s.lean.t = -side * 0.26; s.turn.t = -side * 0.38;
     s.open.t = 0.42;
   }
   function uncup() {
     cupSide = 0;
-    ears.forEach(e => { e.grow.t = 1; e.perk.t = 1; });
+    if (earsOn) ears.forEach(e => { e.grow.t = 1; e.perk.t = 1; });
     arms.forEach(a => { a.reach.t = 0; });
     s.lean.t = 0; s.turn.t = 0; s.open.t = 1;
   }
