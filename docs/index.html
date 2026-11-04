@@ -3,431 +3,589 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>hear: let Claude listen</title>
-<meta name="description" content="A Claude Code skill that lets Claude listen to audio and video: who spoke, what they said, and how they said it. Runs locally on Apple Silicon.">
-<meta property="og:title" content="hear: let Claude listen">
-<meta property="og:description" content="Who spoke, what they said, and how they said it, as a report Claude can read. Local, free, private.">
+<title>hear: give Claude ears</title>
+<meta name="description" content="A Claude Code skill that turns any audio or video into a report Claude can read: who spoke, what they said, and how they said it. Free and local on macOS, Windows and Linux.">
+<meta property="og:title" content="hear: give Claude ears">
+<meta property="og:description" content="Who spoke, what they said, and how they said it, as a report Claude can read. Free and local.">
+<meta name="theme-color" content="#09090b">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2309090b'/><g fill='%2360a5fa'><rect x='7' y='12' width='3' height='8' rx='1.5'/><rect x='12' y='7' width='3' height='18' rx='1.5'/><rect x='17' y='10' width='3' height='12' rx='1.5'/><rect x='22' y='13' width='3' height='6' rx='1.5'/></g></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --paper: #f3eee4;
-  --paper-2: #e9e2d4;
-  --ink: #1b1813;
-  --ink-2: #5b5448;
-  --rule: #cfc5b2;
-  --signal: #e2531f;
-  --s1: #1b1813;
-  --s2: #2f6f6a;
-  --mark-bg: #fff8ea;
-  --code-bg: #1b1813;
-  --code-ink: #f3eee4;
+  --bg: #09090b;
+  --bg-2: #0f0f12;
+  --card: #111114;
+  --card-2: #16161a;
+  --line: #232329;
+  --line-2: #2e2e36;
+  --text: #fafafa;
+  --text-2: #a1a1aa;
+  --text-3: #71717a;
+  --accent: #60a5fa;
+  --accent-ink: #0b1220;
+  --s1: #60a5fa;
+  --s2: #f472b6;
+  --mark: #fbbf24;
+  --ok: #4ade80;
+  --glow: rgba(96, 165, 250, .16);
+  --shadow: 0 30px 80px -30px rgba(0, 0, 0, .7);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #15130f;
-    --paper-2: #1f1c17;
-    --ink: #eee7d9;
-    --ink-2: #a79e8d;
-    --rule: #3a352c;
-    --signal: #ff6b35;
-    --s1: #eee7d9;
-    --s2: #6fc2b8;
-    --mark-bg: #221f19;
-    --code-bg: #0c0b09;
-    --code-ink: #eee7d9;
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff;
+    --bg-2: #fafafa;
+    --card: #ffffff;
+    --card-2: #f6f6f7;
+    --line: #e7e7ea;
+    --line-2: #d9d9de;
+    --text: #0a0a0c;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-ink: #ffffff;
+    --s1: #2563eb;
+    --s2: #db2777;
+    --mark: #b45309;
+    --ok: #16a34a;
+    --glow: rgba(37, 99, 235, .10);
+    --shadow: 0 30px 70px -35px rgba(15, 23, 42, .35);
   }
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font: 400 17px/1.6 "Hanken Grotesk", sans-serif;
-  -webkit-font-smoothing: antialiased;
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 400 16px/1.6 "Geist", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
 }
-body::before { /* paper grain */
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .35;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-main, header, footer { position: relative; z-index: 1; }
-a { color: inherit; text-decoration-color: var(--signal); text-underline-offset: 3px; }
-.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
-.mono { font-family: "IBM Plex Mono", monospace; }
+a { color: inherit; text-decoration: none; }
+code, .mono { font-family: "Geist Mono", ui-monospace, monospace; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 
 /* nav */
-nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--rule); }
-.logo { font: italic 400 30px/1 "Instrument Serif", serif; letter-spacing: -.01em; text-decoration: none; display: flex; align-items: center; gap: 10px; }
-.logo i { display: inline-flex; gap: 2px; align-items: center; height: 18px; }
-.logo i b { width: 3px; background: var(--signal); border-radius: 2px; animation: pulse 1.2s ease-in-out infinite; }
-.logo i b:nth-child(1) { height: 40%; } .logo i b:nth-child(2) { height: 100%; animation-delay: .15s; }
-.logo i b:nth-child(3) { height: 65%; animation-delay: .3s; } .logo i b:nth-child(4) { height: 85%; animation-delay: .45s; }
-@keyframes pulse { 50% { transform: scaleY(.45); } }
-nav .links { display: flex; gap: 22px; font-size: 15px; color: var(--ink-2); }
-nav .links a { text-decoration: none; }
-nav .links a:hover { color: var(--ink); }
+.nav { position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(160%) blur(12px); -webkit-backdrop-filter: saturate(160%) blur(12px);
+  background: color-mix(in srgb, var(--bg) 78%, transparent); border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -.01em; }
+.brand svg { width: 26px; height: 26px; }
+.nav-links { display: flex; align-items: center; gap: 28px; font-size: 14px; color: var(--text-2); }
+.nav-links a:hover { color: var(--text); }
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px; font: 500 14px "Geist", sans-serif;
+  border: 1px solid var(--line-2); background: var(--card); color: var(--text); cursor: pointer; transition: background .15s, border-color .15s, transform .15s; white-space: nowrap; }
+.btn:hover { border-color: var(--text-3); }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn.primary:hover { transform: translateY(-1px); }
+.btn.sm { height: 34px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
+.btn svg { width: 16px; height: 16px; }
 
 /* hero */
-.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 56px; padding: 72px 0 64px; align-items: start; }
-.hero > *, .steps > *, .card { min-width: 0; } /* long commands scroll inside their box instead of widening the page */
-.kicker { font: 500 12px/1 "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--signal); }
-h1 { font: 400 clamp(52px, 7.4vw, 96px)/.92 "Instrument Serif", serif; letter-spacing: -.025em; margin: 18px 0 26px; }
-h1 em { color: var(--signal); }
-.lede { font-size: 20px; color: var(--ink-2); max-width: 30ch; margin: 0 0 32px; }
-.lede strong { color: var(--ink); font-weight: 600; }
-.install { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 46px 20px 18px; position: relative; font: 13.5px/1.7 "IBM Plex Mono", monospace; overflow-x: auto; white-space: pre; }
-.install .c { color: #8c8474; }
-.install .p { color: var(--signal); user-select: none; }
-.copy { position: absolute; top: 12px; right: 12px; background: transparent; border: 1px solid #4a443a; color: var(--code-ink); font: 500 12px "IBM Plex Mono", monospace; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-.copy:hover { border-color: var(--signal); }
-.os { display: inline-flex; gap: 4px; margin-bottom: 10px; padding: 3px; border: 1px solid var(--rule); border-radius: 8px; }
-.os button { background: none; border: 0; padding: 5px 12px; border-radius: 6px; font: 500 12px "IBM Plex Mono", monospace; color: var(--ink-2); cursor: pointer; }
-.os button.on { background: var(--ink); color: var(--paper); }
-.meta { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 18px; font: 13px "IBM Plex Mono", monospace; color: var(--ink-2); }
-.meta span::before { content: "■ "; color: var(--signal); font-size: 9px; vertical-align: 2px; }
+.hero { position: relative; padding: 88px 0 40px; text-align: center; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: -200px 0 auto; height: 700px; z-index: -1;
+  background: radial-gradient(600px 300px at 50% 35%, var(--glow), transparent 70%); }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .5;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px; mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 20%, transparent 75%); }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px; border: 1px solid var(--line-2); border-radius: 999px;
+  background: var(--card); font-size: 13px; color: var(--text-2); }
+.pill b { background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px; letter-spacing: .02em; }
+h1 { font-size: clamp(44px, 7vw, 76px); line-height: 1.02; letter-spacing: -.045em; font-weight: 700; margin: 24px auto 20px; max-width: 14ch; }
+h1 span { background: linear-gradient(180deg, var(--text) 30%, var(--text-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sub { font-size: clamp(17px, 2vw, 20px); color: var(--text-2); max-width: 620px; margin: 0 auto 32px; line-height: 1.55; }
+.sub strong { color: var(--text); font-weight: 500; }
+.cta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.chips { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 22px; margin-top: 28px; font-size: 13px; color: var(--text-3); }
+.chips span { display: inline-flex; align-items: center; gap: 7px; }
+.chips svg { width: 15px; height: 15px; color: var(--ok); }
 
-/* the demo: waveform becomes words */
-.demo { border: 1px solid var(--rule); border-radius: 14px; background: var(--mark-bg); overflow: hidden; box-shadow: 0 30px 60px -40px rgba(27,24,19,.45); }
-.demo-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--rule); font: 12px "IBM Plex Mono", monospace; color: var(--ink-2); }
-.demo-head button { background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; display: flex; gap: 6px; align-items: center; }
-.wave { position: relative; height: 92px; padding: 14px 16px 0; display: flex; align-items: center; gap: 2px; cursor: pointer; }
-.wave b { flex: 1; min-width: 1px; border-radius: 2px; background: var(--rule); transition: background .15s; }
-.wave b.s1 { --c: var(--s1); } .wave b.s2 { --c: var(--s2); }
-.wave b.on { background: var(--c); }
-.playhead { position: absolute; top: 8px; bottom: -6px; width: 2px; background: var(--signal); left: 16px; pointer-events: none; }
-.track { display: flex; justify-content: space-between; padding: 8px 16px 0; font: 11px "IBM Plex Mono", monospace; color: var(--ink-2); }
-.report { padding: 14px 16px 18px; font: 14px/1.85 "IBM Plex Mono", monospace; min-height: 300px; }
-.report .ln { display: block; margin-bottom: 4px; }
-.report .who { display: inline-block; width: 26px; font-weight: 500; }
-.report .who.S1 { color: var(--s1); } .report .who.S2 { color: var(--s2); }
-.report .w { opacity: .18; transition: opacity .2s, color .2s; }
-.report .w.heard { opacity: 1; }
-.report .w.now { color: var(--signal); }
-.report .x { color: var(--signal); }
-.report .emo { color: var(--s2); }
-.report .w.heard .emo, .report .w.heard .x { animation: pop .35s ease-out; }
-@keyframes pop { from { opacity: 0; } }
+/* demo window */
+.window { margin: 56px auto 0; max-width: 980px; border: 1px solid var(--line-2); border-radius: 16px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; text-align: left; }
+.titlebar { display: flex; align-items: center; gap: 14px; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--line); background: var(--card-2); }
+.dots { display: flex; gap: 7px; } .dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line-2); }
+.titlebar .title { flex: 1; text-align: center; font: 12.5px "Geist Mono", monospace; color: var(--text-3); }
+.replay { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; color: var(--text-2); font: 500 12.5px "Geist", sans-serif; cursor: pointer; padding: 6px 8px; border-radius: 6px; }
+.replay:hover { background: var(--line); color: var(--text); }
+.replay svg { width: 14px; height: 14px; }
+.wave-wrap { padding: 20px 22px 14px; border-bottom: 1px solid var(--line); }
+.wave-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12.5px; color: var(--text-3); }
+.legend { display: flex; gap: 16px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 8px; height: 8px; border-radius: 2px; }
+.wave { position: relative; height: 72px; display: flex; align-items: center; gap: 2px; cursor: pointer; }
+.wave b { flex: 1; min-width: 1px; border-radius: 2px; background: var(--line-2); transition: background .12s; }
+.wave b.on.s1 { background: var(--s1); } .wave b.on.s2 { background: var(--s2); }
+.playhead { position: absolute; top: -4px; bottom: -4px; width: 2px; border-radius: 2px; background: var(--text); left: 0; pointer-events: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--text) 12%, transparent); }
+.times { display: flex; justify-content: space-between; margin-top: 10px; font: 12px "Geist Mono", monospace; color: var(--text-3); }
+.times .now-t { color: var(--text); }
+.report { padding: 18px 22px 22px; font: 14px/1.75 "Geist Mono", monospace; }
+.ln { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 7px 10px; border-radius: 8px; transition: background .2s; }
+.ln.cur { background: var(--card-2); }
+.who { font-weight: 500; font-size: 12px; padding-top: 2px; }
+.who.S1 { color: var(--s1); } .who.S2 { color: var(--s2); }
+.w { color: var(--text-3); transition: color .15s; }
+.w.heard { color: var(--text); }
+.w.now { color: var(--accent); }
+.x { color: var(--mark); }
+.emo { display: inline-block; font-size: 11.5px; line-height: 1; padding: 4px 8px; margin-left: 6px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--s2) 40%, transparent); color: var(--s2); vertical-align: 1px; }
 
 /* sections */
-section { padding: 72px 0; border-top: 1px solid var(--rule); }
-.sec-head { display: grid; grid-template-columns: 220px 1fr; gap: 40px; margin-bottom: 36px; }
-.sec-num { font: 12px "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); padding-top: 12px; }
-h2 { font: 400 clamp(36px, 4.6vw, 56px)/1 "Instrument Serif", serif; letter-spacing: -.02em; margin: 0; }
-h2 em { color: var(--signal); }
-.sec-head p { color: var(--ink-2); max-width: 56ch; margin: 14px 0 0; }
+section { padding: 104px 0; }
+.eyebrow { font: 500 13px "Geist Mono", monospace; color: var(--accent); letter-spacing: .02em; margin-bottom: 14px; }
+h2 { font-size: clamp(30px, 4vw, 44px); line-height: 1.1; letter-spacing: -.035em; font-weight: 650; margin: 0 0 16px; max-width: 22ch; }
+.lead { color: var(--text-2); font-size: 17px; max-width: 620px; margin: 0; }
+.head { margin-bottom: 52px; }
+.head.center { text-align: center; } .head.center h2, .head.center .lead { margin-left: auto; margin-right: auto; }
 
-/* marks legend */
-.marks { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
-.mark { padding: 22px 20px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--paper); }
-.mark:nth-child(4n) { border-right: 0; }
-.mark:nth-last-child(-n+4) { border-bottom: 0; }
-.mark code { display: block; font: 500 18px "IBM Plex Mono", monospace; margin-bottom: 10px; color: var(--ink); }
-.mark code .x { color: var(--signal); }
-.mark p { margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.45; }
+.built { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-2); padding: 28px 0; }
+.built .wrap { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 14px 44px; color: var(--text-3); font-size: 14px; }
+.built strong { color: var(--text-2); font-weight: 500; }
+.built .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card { border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 26px; transition: border-color .2s, transform .2s; }
+.card:hover { border-color: var(--line-2); }
+.ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--card-2); border: 1px solid var(--line); color: var(--accent); margin-bottom: 18px; }
+.ico svg { width: 20px; height: 20px; }
+.card h3 { margin: 0 0 8px; font-size: 16.5px; font-weight: 600; letter-spacing: -.01em; }
+.card p { margin: 0; color: var(--text-2); font-size: 14.5px; line-height: 1.55; }
+.card .eg { margin-top: 16px; font: 12.5px "Geist Mono", monospace; color: var(--text-2); background: var(--card-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+
+/* marks */
+.marks { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
+.mk { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: center; padding: 16px 22px; border-bottom: 1px solid var(--line); }
+.mk:nth-child(odd) { border-right: 1px solid var(--line); }
+.mk:nth-last-child(-n+2) { border-bottom: 0; }
+.mk code { font-size: 14px; color: var(--text); }
+.mk span { color: var(--text-2); font-size: 14.5px; }
 
 /* pipeline */
-.pipe { display: grid; gap: 0; border-top: 1px solid var(--ink); }
-.stage { display: grid; grid-template-columns: 56px 170px 1fr 260px; gap: 20px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--rule); }
-.stage .n { font: italic 40px/1 "Instrument Serif", serif; color: var(--signal); }
-.stage h3 { margin: 0; font: 500 15px "IBM Plex Mono", monospace; }
-.stage h3 small { display: block; font-weight: 400; color: var(--ink-2); font-size: 12px; margin-top: 3px; }
-.stage p { margin: 0; color: var(--ink-2); font-size: 15px; }
-.stage p b { color: var(--ink); font-weight: 500; font-family: "IBM Plex Mono", monospace; font-size: 13px; }
-.mem { font: 12px "IBM Plex Mono", monospace; color: var(--ink-2); }
-.mem .bar { height: 8px; background: var(--paper-2); border-radius: 4px; margin-top: 6px; overflow: hidden; }
-.mem .bar i { display: block; height: 100%; background: var(--ink); border-radius: 4px; width: 0; transition: width 1.1s cubic-bezier(.2,.8,.2,1); }
-.mem.peak .bar i { background: var(--signal); }
-.seen .mem .bar i { width: var(--w); }
-.pipe-note { display: flex; flex-wrap: wrap; gap: 14px 40px; margin-top: 26px; font: 14px "IBM Plex Mono", monospace; }
-.pipe-note div { display: flex; flex-direction: column; }
-.pipe-note strong { font: 400 44px/1 "Instrument Serif", serif; }
-.pipe-note span { color: var(--ink-2); font-size: 12px; margin-top: 4px; }
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: s; }
+.step { position: relative; border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 20px; }
+.step .n { font: 500 12px "Geist Mono", monospace; color: var(--text-3); }
+.step h3 { margin: 10px 0 2px; font: 600 15px "Geist Mono", monospace; }
+.step .m { font-size: 12.5px; color: var(--text-3); margin-bottom: 12px; }
+.step p { margin: 0 0 16px; font-size: 14px; color: var(--text-2); line-height: 1.5; min-height: 63px; }
+.meter { font: 12px "Geist Mono", monospace; color: var(--text-2); display: flex; justify-content: space-between; }
+.bar { height: 6px; border-radius: 6px; background: var(--card-2); border: 1px solid var(--line); margin-top: 8px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--text-3); border-radius: 6px; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.step.peak .bar i { background: var(--accent); }
+.seen .bar i { width: var(--w); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.stat { padding: 24px; border-right: 1px solid var(--line); }
+.stat:last-child { border-right: 0; }
+.stat strong { display: block; font-size: 30px; font-weight: 650; letter-spacing: -.03em; }
+.stat span { font-size: 13.5px; color: var(--text-3); }
+
+/* platforms */
+.plat .card { display: flex; flex-direction: column; }
+.plat .os-name { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16.5px; margin-bottom: 14px; }
+.plat .os-name svg { width: 20px; height: 20px; }
+.kv { margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.kv li { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+.kv li span:first-child { color: var(--text-3); }
+.kv li span:last-child { text-align: right; color: var(--text-2); }
+.tag { display: inline-block; font-size: 11.5px; font-weight: 500; padding: 2px 8px; border-radius: 999px; margin-left: auto; border: 1px solid var(--line-2); color: var(--text-2); }
+.tag.best { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
 
 /* install */
-.steps { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-.card { border: 1px solid var(--rule); border-radius: 12px; padding: 26px; background: var(--paper); }
-.card h3 { margin: 0 0 6px; font: 400 28px/1.1 "Instrument Serif", serif; }
-.card > p { color: var(--ink-2); margin: 0 0 18px; font-size: 15px; }
-.card .install { font-size: 13px; }
-table { width: 100%; border-collapse: collapse; font-size: 15px; }
-td { padding: 11px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
-td:first-child { color: var(--ink-2); padding-right: 16px; white-space: nowrap; }
-td code { font: 13px "IBM Plex Mono", monospace; background: var(--paper-2); padding: 2px 7px; border-radius: 5px; }
-tr:last-child td { border-bottom: 0; }
-.asks { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-.asks li { font: italic 22px/1.3 "Instrument Serif", serif; padding-left: 26px; position: relative; }
-.asks li::before { content: "›"; position: absolute; left: 0; color: var(--signal); font-style: normal; }
+.install { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+.term { border: 1px solid var(--line-2); border-radius: 14px; background: #0b0b0e; overflow: hidden; box-shadow: var(--shadow); }
+.term-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 14px; border-bottom: 1px solid #222228; }
+.tabs { display: flex; gap: 4px; }
+.tabs button { background: none; border: 0; color: #8b8b94; font: 500 13px "Geist", sans-serif; padding: 7px 12px; border-radius: 7px; cursor: pointer; }
+.tabs button.on { background: #1d1d23; color: #fafafa; }
+.copy { display: inline-flex; align-items: center; gap: 6px; background: #17171c; border: 1px solid #2a2a31; color: #d4d4d8; font: 500 12.5px "Geist", sans-serif; padding: 6px 10px; border-radius: 7px; cursor: pointer; }
+.copy:hover { border-color: #45454f; }
+.copy svg { width: 14px; height: 14px; }
+pre { margin: 0; padding: 20px 20px 22px; overflow-x: auto; font: 13.5px/1.85 "Geist Mono", monospace; color: #e4e4e7; }
+pre .c { color: #6b6b75; } pre .p { color: #60a5fa; user-select: none; }
+.cmds { margin: 0; padding: 0; list-style: none; }
+.cmds li { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.cmds li:first-child { border-top: 0; padding-top: 0; }
+.cmds span { color: var(--text-3); }
+.cmds code { font-size: 12.5px; color: var(--text); background: var(--card-2); border: 1px solid var(--line); padding: 4px 8px; border-radius: 6px; max-width: 100%; overflow-x: auto; white-space: nowrap; }
+.lead code { font-size: .88em; background: var(--card-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; color: var(--text); }
+.asks { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.asks li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 14.5px; color: var(--text-2); }
+.asks svg { width: 16px; height: 16px; flex: none; margin-top: 3px; color: var(--accent); }
 
 /* limits */
-.limits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 40px; }
-.limits div { padding: 18px 0; border-top: 1px solid var(--rule); }
-.limits h4 { margin: 0 0 6px; font: 500 14px "IBM Plex Mono", monospace; }
-.limits p { margin: 0; color: var(--ink-2); font-size: 15px; }
+.limits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.limits .card h3 { display: flex; align-items: center; gap: 10px; font-size: 15.5px; }
+.limits .card h3 svg { width: 17px; height: 17px; color: var(--text-3); flex: none; }
 
-footer { border-top: 1px solid var(--ink); padding: 34px 0 56px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: var(--ink-2); font-size: 14px; }
-footer .logo { font-size: 24px; color: var(--ink); }
+.final { text-align: center; border: 1px solid var(--line); border-radius: 20px; padding: 64px 24px; background: radial-gradient(500px 220px at 50% 0%, var(--glow), transparent 70%), var(--card); }
+.final h2 { margin: 0 auto 14px; }
+.final .lead { margin: 0 auto 28px; }
 
-/* load reveal */
-.rise { animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
-.d1 { animation-delay: .08s; } .d2 { animation-delay: .18s; } .d3 { animation-delay: .3s; } .d4 { animation-delay: .45s; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
-@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--text-3); font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+footer a:hover { color: var(--text); }
 
-@media (max-width: 900px) {
-  .hero { grid-template-columns: minmax(0, 1fr); gap: 40px; padding-top: 48px; }
-  .sec-head { grid-template-columns: 1fr; gap: 6px; }
-  .marks { grid-template-columns: 1fr 1fr; }
-  .mark:nth-child(4n) { border-right: 1px solid var(--rule); }
-  .mark:nth-child(2n) { border-right: 0; }
-  .mark:nth-last-child(-n+4) { border-bottom: 1px solid var(--rule); }
-  .mark:nth-last-child(-n+2) { border-bottom: 0; }
-  .stage { grid-template-columns: 40px 1fr; gap: 6px 14px; }
-  .stage p, .stage .mem { grid-column: 2; }
-  .steps, .limits { grid-template-columns: minmax(0, 1fr); }
+/* motion */
+.reveal { opacity: 0; transform: translateY(12px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } .reveal { opacity: 1; transform: none; } }
+
+/* responsive */
+@media (max-width: 980px) {
+  .grid, .limits { grid-template-columns: repeat(2, 1fr); }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat:nth-child(2) { border-right: 0; } .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .install { grid-template-columns: minmax(0, 1fr); }
+  .nav-links .hide-md { display: none; }
 }
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .wrap { padding: 0 16px; }
-  body { font-size: 16px; }
-  nav .links a.hide-sm { display: none; }
-  .report { font-size: 12.5px; min-height: 340px; }
-  .marks { grid-template-columns: 1fr; }
-  .mark { border-right: 0 !important; border-bottom: 1px solid var(--rule) !important; }
-  .mark:last-child { border-bottom: 0 !important; }
+  section { padding: 72px 0; }
+  .hero { padding-top: 56px; }
+  .grid, .limits, .steps, .marks { grid-template-columns: minmax(0, 1fr); }
+  .mk { grid-template-columns: 130px 1fr; border-right: 0 !important; }
+  .mk:nth-last-child(2) { border-bottom: 1px solid var(--line); }
+  .report { padding: 14px 10px 16px; font-size: 12.5px; }
+  .ln { grid-template-columns: 26px 1fr; gap: 6px; padding: 6px; }
+  .wave-wrap { padding: 16px 14px 12px; }
+  .legend { display: none; }
+  .titlebar .title { font-size: 11px; }
+  .step p { min-height: 0; }
+  .nav-links { gap: 14px; }
+  .nav-links .hide-sm { display: none; }
 }
 </style>
 </head>
 <body>
-<header class="wrap">
-  <nav>
-    <a class="logo" href="#"><i><b></b><b></b><b></b><b></b></i>hear</a>
-    <div class="links">
-      <a class="hide-sm" href="#marks">Marks</a>
-      <a class="hide-sm" href="#how">How it works</a>
-      <a href="#install">Install</a>
-      <a href="https://github.com/kolinabir/claude-hear">GitHub ↗</a>
-    </div>
-  </nav>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="hear home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor" opacity=".08"/><g fill="var(--accent)"><rect x="7" y="12" width="3" height="8" rx="1.5"/><rect x="12" y="7" width="3" height="18" rx="1.5"/><rect x="17" y="10" width="3" height="12" rx="1.5"/><rect x="22" y="13" width="3" height="6" rx="1.5"/></g></svg>
+      hear
+    </a>
+    <nav class="nav-links">
+      <a class="hide-md" href="#features">Features</a>
+      <a class="hide-md" href="#how">How it works</a>
+      <a class="hide-sm" href="#platforms">Platforms</a>
+      <a class="hide-sm" href="#install">Install</a>
+      <a class="btn sm" href="https://github.com/kolinabir/claude-hear">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+        GitHub
+      </a>
+    </nav>
+  </div>
 </header>
 
-<main class="wrap">
+<main>
   <div class="hero">
-    <div>
-      <div class="kicker rise">A skill for Claude Code</div>
-      <h1 class="rise d1">Claude can't hear.<br><em>Now it can listen.</em></h1>
-      <p class="lede rise d2">Point Claude at any audio or video file. It learns <strong>who spoke, what they said, and how they said it</strong>, all on your own computer, free and private.</p>
-      <div class="os rise d3" role="tablist"><button class="on" data-os="unix" role="tab">macOS · Linux</button><button data-os="win" role="tab">Windows</button></div>
-      <div class="install rise d3" id="cmd-hero" data-os="unix"><button class="copy" data-copy="cmd-hero">copy</button><span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
-<span class="p">$ </span>~/.claude-hear/install.sh --warm</div>
-      <div class="install rise d3" id="cmd-hero-win" data-os="win" hidden><button class="copy" data-copy="cmd-hero-win">copy</button><span class="p">&gt; </span>git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
-<span class="p">&gt; </span>powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm</div>
-      <div class="meta rise d4"><span>macOS · Windows · Linux</span><span>~2.4 GB peak RAM</span><span>no API keys</span><span>mp3 · wav · m4a · mp4 · mov</span></div>
-    </div>
-
-    <div class="demo rise d2" aria-label="Example: a hearing report playing back">
-      <div class="demo-head">
-        <span>two-voices.wav → hearing.md</span>
-        <button id="play" type="button" aria-label="Replay">↻ replay</button>
+    <div class="wrap">
+      <span class="pill reveal"><b>NEW</b> A skill for Claude Code</span>
+      <h1 class="reveal"><span>Give Claude ears.</span></h1>
+      <p class="sub reveal">Turn any audio or video into a report Claude can read: <strong>who spoke, what they said, and how they said it</strong>. Free and private, on your own machine.</p>
+      <div class="cta reveal">
+        <a class="btn primary" href="#install">Install in two commands
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn" href="https://github.com/kolinabir/claude-hear">View on GitHub</a>
       </div>
-      <div class="wave" id="wave"><div class="playhead" id="head"></div></div>
-      <div class="track"><span>0:00</span><span class="mono" id="clock">0:00.0</span><span id="dur"></span></div>
-      <div class="report" id="report"></div>
+      <div class="chips reveal">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>macOS, Windows, Linux</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No API keys</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>~2.4 GB peak RAM</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>mp3, wav, m4a, mp4, mov</span>
+      </div>
+
+      <div class="window reveal" aria-label="Example hearing report playing back in sync with the audio">
+        <div class="titlebar">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="title">hearing.md · two-voices.wav</div>
+          <button class="replay" id="play" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Replay
+          </button>
+        </div>
+        <div class="wave-wrap">
+          <div class="wave-top">
+            <span>Real output from a 13-second test clip</span>
+            <div class="legend"><span><i style="background:var(--s1)"></i>S1 · 79%</span><span><i style="background:var(--s2)"></i>S2 · 21%</span></div>
+          </div>
+          <div class="wave" id="wave"><div class="playhead" id="head"></div></div>
+          <div class="times"><span>0:00.0</span><span class="now-t" id="clock">0:00.0</span><span id="dur"></span></div>
+        </div>
+        <div class="report" id="report"></div>
+      </div>
     </div>
   </div>
 
-  <section id="marks">
-    <div class="sec-head">
-      <div class="sec-num">01 · What Claude reads</div>
-      <div>
-        <h2>Not just the words. <em>The voice.</em></h2>
-        <p>Every line of the report carries marks for how it sounded, so Claude can tell an aside from a punchline, a question from a statement, a joke from a confession.</p>
-      </div>
+  <div class="built">
+    <div class="wrap">
+      <span class="lbl">Built on</span>
+      <strong>Whisper</strong><strong>CLAP</strong><strong>WeSpeaker</strong><strong>emotion2vec+</strong><strong>librosa</strong><strong>ffmpeg</strong>
     </div>
-    <div class="marks">
-      <div class="mark"><code>S1 · S2</code><p>Who's talking, from a voice fingerprint on each line.</p></div>
-      <div class="mark"><code>**great**</code><p>Clearly louder than usual: emphasis, excitement, a shout.</p></div>
-      <div class="mark"><code>(or something)</code><p>Clearly quieter: trailing off, an aside, a throwaway.</p></div>
-      <div class="mark"><code>so<span class="x">↑</span> obsessed<span class="x">↑</span></code><p>Pitch well above (↑) or below (↓) that speaker's normal.</p></div>
-      <div class="mark"><code>that? <span class="x">↗</span></code><p>The line ends rising (a question, doubt) or falling ↘ (a statement).</p></div>
-      <div class="mark"><code>kitchen, <span class="x">‖0.9s‖</span></code><p>A pause, measured. Gaps over a second show as "no speech".</p></div>
-      <div class="mark"><code>Two<span class="x">[?]</span></code><p>Whisper wasn't sure, so Claude treats the word as a guess.</p></div>
-      <div class="mark"><code>{sounds happy 0.9}</code><p>An emotion guess, shown only when confident and not neutral.</p></div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="head reveal">
+        <div class="eyebrow">What Claude gets</div>
+        <h2>Not just the words. The way they were said.</h2>
+        <p class="lead">A transcript alone loses half the meaning. hear adds the delivery, the speakers and the sounds around them, in plain text Claude can reason about.</p>
+      </div>
+      <div class="grid">
+        <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div>
+          <h3>Word-level transcript</h3><p>Every word with its start, end and confidence, so Claude knows what was said and exactly when.</p><div class="eg">[00:07.4–00:12.0] Yeah, and then…</div></div>
+        <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg></div>
+          <h3>Who's speaking</h3><p>A voice fingerprint for each line groups them into speakers, with each one's share of the talking.</p><div class="eg">S1 79% · S2 21%</div></div>
+        <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3l3-8 4 16 3-10 2 2h5"/></svg></div>
+          <h3>Delivery</h3><p>Loudness, pitch, pauses, pace and rising or falling line ends, marked right on the words.</p><div class="eg">so<span class="x">↑</span> obsessed<span class="x">↑</span> · that? <span class="x">↗</span></div></div>
+        <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <h3>Sounds around the speech</h3><p>Background music, laughter, applause, whooshes and more, labelled second by second.</p><div class="eg">[00:16–00:18] possibly laughter</div></div>
+        <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M8 14.5s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/></svg></div>
+          <h3>Emotion</h3><p>A tone guess for each longer line, shown only when the model is confident and it isn't neutral.</p><div class="eg">{sounds surprised 1.0}</div></div>
+        <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 16v-3M10 16V9M13 16v-5M16 16V8M19 16v-2"/></svg></div>
+          <h3>Spectrogram</h3><p>A picture of the sound Claude can look at, for anything the labels miss: hum, hiss, cuts, music.</p><div class="eg">spectrogram.png</div></div>
+      </div>
     </div>
   </section>
 
-  <section id="how">
-    <div class="sec-head">
-      <div class="sec-num">02 · How it works</div>
-      <div>
-        <h2>Five small models, <em>one at a time.</em></h2>
-        <p>Each stage is its own process: it loads, writes its result, exits and hands the memory back. So the peak is the biggest stage, not all of them added up. Measured on an Apple M4 with a 40-second reel; on a CPU-only PC, step 2 takes longer.</p>
+  <section id="marks" style="padding-top:0">
+    <div class="wrap">
+      <div class="head reveal">
+        <div class="eyebrow">Reading the report</div>
+        <h2>Eight marks, one glance.</h2>
+        <p class="lead">Small, consistent marks keep the report compact enough to fit long recordings into Claude's context.</p>
       </div>
-    </div>
-    <div class="pipe" id="pipe">
-      <div class="stage"><span class="n">1</span><h3>sounds<small>CLAP zero-shot</small></h3><p>Labels each 2 s window: <b>music</b>, <b>laughter</b>, <b>applause</b>, <b>whoosh</b>…</p><div class="mem">1.3 GB · 11 s<div class="bar"><i style="--w:54%"></i></div></div></div>
-      <div class="stage"><span class="n">2</span><h3>asr<small>Whisper turbo · MLX or faster-whisper</small></h3><p>Every word with its start, end and confidence.</p><div class="mem peak">2.4 GB · 20 s · the peak<div class="bar"><i style="--w:100%"></i></div></div></div>
-      <div class="stage"><span class="n">3</span><h3>prosody<small>loudness + pyin pitch</small></h3><p>dB and Hz per word, which become <b>**loud**</b>, <b>(quiet)</b>, <b>↑ ↓ ↗ ↘</b>.</p><div class="mem">0.25 GB · 6 s<div class="bar"><i style="--w:10%"></i></div></div></div>
-      <div class="stage"><span class="n">4</span><h3>speakers<small>WeSpeaker fingerprint</small></h3><p>A voice fingerprint per line, grouped by similarity into <b>S1</b>, <b>S2</b>.</p><div class="mem">0.15 GB · 1 s<div class="bar"><i style="--w:6%"></i></div></div></div>
-      <div class="stage"><span class="n">5</span><h3>emotion<small>emotion2vec+ · ONNX</small></h3><p>An emotion guess for each line longer than 1.5 s.</p><div class="mem">1.1 GB · 4 s<div class="bar"><i style="--w:46%"></i></div></div></div>
-    </div>
-    <div class="pipe-note">
-      <div><strong>2.4 GB</strong><span>peak RAM, any clip length</span></div>
-      <div><strong>~1.2×</strong><span>clip length to process</span></div>
-      <div><strong>~3.5 GB</strong><span>models, downloaded once</span></div>
-      <div><strong>0</strong><span>bytes leave your computer</span></div>
+      <div class="marks reveal">
+        <div class="mk"><code>S1 · S2</code><span>Who is talking on this line</span></div>
+        <div class="mk"><code>**great**</code><span>Clearly louder: emphasis or excitement</span></div>
+        <div class="mk"><code>(or something)</code><span>Clearly quieter: trailing off, an aside</span></div>
+        <div class="mk"><code>word<span class="x">↑</span> word<span class="x">↓</span></code><span>Pitch well above or below that speaker's normal</span></div>
+        <div class="mk"><code>that? <span class="x">↗</span>  done. <span class="x">↘</span></code><span>Line ends rising (question) or falling</span></div>
+        <div class="mk"><code>kitchen, <span class="x">‖0.9s‖</span></code><span>A measured pause</span></div>
+        <div class="mk"><code>Two<span class="x">[?]</span></code><span>Whisper wasn't sure, so treat it as a guess</span></div>
+        <div class="mk"><code>{sounds happy 0.9}</code><span>Confident emotion guess</span></div>
+      </div>
     </div>
   </section>
 
-  <section id="install">
-    <div class="sec-head">
-      <div class="sec-num">03 · Install</div>
-      <div>
-        <h2>Two commands, <em>then just ask.</em></h2>
-        <p>Works on macOS, Windows and Linux with Claude Code. Fastest on Apple Silicon (MLX) or with an NVIDIA GPU; otherwise Whisper runs on the CPU. The installer adds ffmpeg, git and uv if they're missing, then puts the skill in <span class="mono">~/.claude/skills/hear</span>.</p>
+  <section id="how" style="background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+    <div class="wrap">
+      <div class="head reveal">
+        <div class="eyebrow">How it works</div>
+        <h2>Five small models, run one at a time.</h2>
+        <p class="lead">Each stage is its own process. It loads, writes its result and exits, handing its memory back before the next one starts. Peak memory is the biggest stage, not the sum. Measured on an Apple M4 with a 40-second clip.</p>
+      </div>
+      <div class="steps" id="steps">
+        <div class="step reveal"><div class="n">01</div><h3>sounds</h3><div class="m">CLAP, zero-shot</div><p>Labels each 2-second window: music, laughter, applause…</p><div class="meter"><span>1.3 GB</span><span>11 s</span></div><div class="bar"><i style="--w:54%"></i></div></div>
+        <div class="step peak reveal"><div class="n">02</div><h3>asr</h3><div class="m">Whisper turbo</div><p>Every word with timing and confidence.</p><div class="meter"><span>2.4 GB · peak</span><span>20 s</span></div><div class="bar"><i style="--w:100%"></i></div></div>
+        <div class="step reveal"><div class="n">03</div><h3>prosody</h3><div class="m">loudness + pyin pitch</div><p>dB and Hz per word, turned into the marks.</p><div class="meter"><span>0.25 GB</span><span>6 s</span></div><div class="bar"><i style="--w:10%"></i></div></div>
+        <div class="step reveal"><div class="n">04</div><h3>speakers</h3><div class="m">WeSpeaker ResNet34</div><p>A voice fingerprint per line, grouped into S1, S2…</p><div class="meter"><span>0.15 GB</span><span>1 s</span></div><div class="bar"><i style="--w:6%"></i></div></div>
+        <div class="step reveal"><div class="n">05</div><h3>emotion</h3><div class="m">emotion2vec+, ONNX</div><p>A tone guess for each line over 1.5 s.</p><div class="meter"><span>1.1 GB</span><span>4 s</span></div><div class="bar"><i style="--w:46%"></i></div></div>
+      </div>
+      <div class="stats reveal">
+        <div class="stat"><strong>2.4 GB</strong><span>peak RAM, whatever the clip length</span></div>
+        <div class="stat"><strong>~1.2×</strong><span>clip length on Apple Silicon</span></div>
+        <div class="stat"><strong>~3.5 GB</strong><span>models, downloaded once</span></div>
+        <div class="stat"><strong>0 bytes</strong><span>sent off your machine</span></div>
       </div>
     </div>
-    <div class="steps">
-      <div class="card">
-        <h3>Install</h3>
-        <p><span class="mono">--warm</span> downloads the models now (~3 GB, a few minutes) instead of on the first listen.</p>
-        <div class="os" role="tablist"><button class="on" data-os="unix" role="tab">macOS · Linux</button><button data-os="win" role="tab">Windows</button></div>
-        <div data-os="unix">
-          <div class="install" id="cmd-2"><button class="copy" data-copy="cmd-2">copy</button><span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
-<span class="p">$ </span>~/.claude-hear/install.sh --warm</div>
-          <table style="margin-top:20px">
-            <tr><td>Update</td><td><code>git -C ~/.claude-hear pull</code></td></tr>
-            <tr><td>Uninstall</td><td><code>~/.claude-hear/uninstall.sh</code></td></tr>
-            <tr><td>…and models</td><td><code>~/.claude-hear/uninstall.sh --purge</code></td></tr>
-          </table>
+  </section>
+
+  <section id="platforms">
+    <div class="wrap">
+      <div class="head reveal">
+        <div class="eyebrow">Platforms</div>
+        <h2>Runs where Claude Code runs.</h2>
+        <p class="lead">The right speech engine is picked for your machine at install time. Everything else is the same everywhere.</p>
+      </div>
+      <div class="grid plat">
+        <div class="card reveal">
+          <div class="os-name"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8c1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1ZM13.9 4.9c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.1.1 2.3-.6 3-1.5Z"/></svg>macOS<span class="tag best">fastest</span></div>
+          <ul class="kv"><li><span>Engine</span><span>Whisper on MLX (GPU)</span></li><li><span>Needs</span><span>Apple Silicon, macOS 14+</span></li><li><span>40 s clip</span><span>~45 s, everything</span></li><li><span>Intel Macs</span><span>CPU, like a PC</span></li></ul>
         </div>
-        <div data-os="win" hidden>
-          <div class="install" id="cmd-2w"><button class="copy" data-copy="cmd-2w">copy</button><span class="p">&gt; </span>git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
-<span class="p">&gt; </span>powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm</div>
-          <table style="margin-top:20px">
-            <tr><td>Update</td><td><code>git -C $HOME\.claude-hear pull</code>, then run <code>install.ps1</code> again</td></tr>
-            <tr><td>Uninstall</td><td><code>$HOME\.claude-hear\uninstall.ps1</code></td></tr>
-            <tr><td>…and models</td><td><code>$HOME\.claude-hear\uninstall.ps1 -Purge</code></td></tr>
-          </table>
+        <div class="card reveal">
+          <div class="os-name"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1 10.4 4v7.2H3V5.1Zm8.3-1.2L21 2.5v8.7h-9.7V3.9ZM3 12.8h7.4V20L3 18.9v-6.1Zm8.3 0H21v8.7l-9.7-1.4v-7.3Z"/></svg>Windows<span class="tag">new</span></div>
+          <ul class="kv"><li><span>Engine</span><span>faster-whisper</span></li><li><span>GPU</span><span>NVIDIA via CUDA 12, else CPU</span></li><li><span>CPU speed</span><span>~1× clip length or more</span></li><li><span>Installer</span><span>PowerShell + winget</span></li></ul>
         </div>
-      </div>
-      <div class="card">
-        <h3>Then ask Claude Code</h3>
-        <p>It picks the skill up on its own, or call it with <span class="mono">/hear</span>.</p>
-        <ul class="asks">
-          <li>listen to ~/Downloads/interview.mp4 — where does she sound unsure?</li>
-          <li>who talks more in this podcast, and when do they interrupt?</li>
-          <li>is there music under the voice in this reel?</li>
-        </ul>
-        <table style="margin-top:22px">
-          <tr><td><code>--fast</code></td><td>words and delivery only, ~30% quicker</td></tr>
-          <tr><td><code>--separate</code></td><td>strip loud music first (slow: +3–4 min)</td></tr>
-          <tr><td><code>--language en</code></td><td>force the language</td></tr>
-        </table>
+        <div class="card reveal">
+          <div class="os-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg>Linux<span class="tag">new</span></div>
+          <ul class="kv"><li><span>Engine</span><span>faster-whisper</span></li><li><span>GPU</span><span>NVIDIA via CUDA 12, else CPU</span></li><li><span>CPU speed</span><span>~1× clip length or more</span></li><li><span>Installer</span><span>bash + apt / dnf / pacman</span></li></ul>
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <div class="sec-num">04 · Honest limits</div>
-      <div><h2>Cues, <em>not certainty.</em></h2></div>
+  <section id="install" style="padding-top:0">
+    <div class="wrap">
+      <div class="head reveal">
+        <div class="eyebrow">Install</div>
+        <h2>Two commands. Then just ask.</h2>
+        <p class="lead">The installer adds ffmpeg, git and uv if they're missing, then puts the skill in <code>~/.claude/skills/hear</code>. The <code>--warm</code> flag downloads the models (~3 GB) right away.</p>
+      </div>
+      <div class="install">
+        <div class="reveal">
+          <div class="term">
+            <div class="term-head">
+              <div class="tabs" role="tablist"><button class="on" data-os="unix" role="tab">macOS · Linux</button><button data-os="win" role="tab">Windows</button></div>
+              <button class="copy" type="button" id="copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>Copy</span></button>
+            </div>
+<pre data-os="unix" id="cmd-unix"><span class="c"># clone, install, download the models</span>
+<span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
+<span class="p">$ </span>~/.claude-hear/install.sh --warm</pre>
+<pre data-os="win" id="cmd-win" hidden><span class="c"># in PowerShell</span>
+<span class="p">&gt; </span>git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
+<span class="p">&gt; </span>powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm</pre>
+          </div>
+          <ul class="asks">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>"Listen to ~/Downloads/interview.mp4. Where does she sound unsure?"</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>"Who talks more in this podcast, and when do they interrupt?"</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>"/hear reel.mov — is there music under the voice?"</li>
+          </ul>
+        </div>
+        <div class="card reveal">
+          <h3 style="margin-bottom:18px">Commands</h3>
+          <ul class="cmds" data-os="unix">
+            <li><span>Update</span><code>git -C ~/.claude-hear pull</code></li>
+            <li><span>Uninstall</span><code>~/.claude-hear/uninstall.sh</code></li>
+            <li><span>…and models</span><code>~/.claude-hear/uninstall.sh --purge</code></li>
+            <li><span>Faster run</span><code>--fast</code></li>
+            <li><span>Loud music</span><code>--separate</code></li>
+            <li><span>Language</span><code>--language en</code></li>
+          </ul>
+          <ul class="cmds" data-os="win" hidden>
+            <li><span>Update</span><code>git -C $HOME\.claude-hear pull; .\install.ps1</code></li>
+            <li><span>Uninstall</span><code>$HOME\.claude-hear\uninstall.ps1</code></li>
+            <li><span>…and models</span><code>$HOME\.claude-hear\uninstall.ps1 -Purge</code></li>
+            <li><span>Faster run</span><code>--fast</code></li>
+            <li><span>Loud music</span><code>--separate</code></li>
+            <li><span>Language</span><code>--language en</code></li>
+          </ul>
+        </div>
+      </div>
     </div>
-    <div class="limits">
-      <div><h4>CPU-only PCs are slower</h4><p>Without Apple Silicon or an NVIDIA GPU, transcription runs on the CPU and takes about the clip's length or more.</p></div>
-      <div><h4>Marks aren't feelings</h4><p>"Louder and higher" suggests emphasis; it doesn't prove anger.</p></div>
-      <div><h4>Emotion leans neutral</h4><p>The model learned mostly from acted speech.</p></div>
-      <div><h4>Short lines blur speakers</h4><p>Under a second, or over loud music, a voice can be misread; such speakers are flagged "brief".</p></div>
-      <div><h4>Sounds are guesses</h4><p>CLAP mixes up neighbours: laughing and coughing, speech over music and singing.</p></div>
-      <div><h4>Pitch on half the words</h4><p>Only words with clear voicing get a pitch reading.</p></div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="head reveal">
+        <div class="eyebrow">Good to know</div>
+        <h2>Cues, not certainty.</h2>
+      </div>
+      <div class="limits">
+        <div class="card reveal"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v5l3 2"/></svg>CPU-only PCs are slower</h3><p>Without Apple Silicon or an NVIDIA GPU, transcription takes about the clip's length or more.</p></div>
+        <div class="card reveal"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 8h.01M11 12h1v4h1"/></svg>Marks aren't feelings</h3><p>"Louder and higher" suggests emphasis. It doesn't prove anger.</p></div>
+        <div class="card reveal"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M8 14.5s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/></svg>Emotion leans neutral</h3><p>The model learned mostly from acted speech, so casual tone can be missed.</p></div>
+        <div class="card reveal"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 11l4 4M21 11l-4 4"/></svg>Short lines blur speakers</h3><p>Lines under a second or over loud music can be misread. Such speakers are flagged "brief".</p></div>
+        <div class="card reveal"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Sounds are guesses</h3><p>CLAP confuses neighbours like laughing and coughing, or speech over music and singing.</p></div>
+        <div class="card reveal"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3l3-8 4 16 3-10 2 2h5"/></svg>Pitch on about half the words</h3><p>Only words with clear voicing get a pitch reading.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="final reveal">
+        <h2>Let Claude listen.</h2>
+        <p class="lead">Two commands, a few minutes of downloads, and every Claude Code session on your machine can hear.</p>
+        <div class="cta"><a class="btn primary" href="#install">Install hear</a><a class="btn" href="https://github.com/kolinabir/claude-hear">Read the docs</a></div>
+      </div>
     </div>
   </section>
 </main>
 
-<footer class="wrap">
-  <a class="logo" href="#">hear</a>
-  <span>Built with Whisper, CLAP, WeSpeaker, emotion2vec+ and librosa · <a href="https://github.com/kolinabir/claude-hear">source on GitHub</a></span>
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#"><svg viewBox="0 0 32 32" aria-hidden="true"><g fill="var(--accent)"><rect x="7" y="12" width="3" height="8" rx="1.5"/><rect x="12" y="7" width="3" height="18" rx="1.5"/><rect x="17" y="10" width="3" height="12" rx="1.5"/><rect x="22" y="13" width="3" height="6" rx="1.5"/></g></svg>hear</a>
+    <span>A Claude Code skill · <a href="https://github.com/kolinabir/claude-hear">GitHub</a></span>
+  </div>
 </footer>
 
 <script>
 const DATA = {"words": [["S1", "So\u2191", 0.0, 0.2, "", ""], ["S1", "I", 0.2, 0.38, "", ""], ["S1", "started", 0.38, 0.82, "", ""], ["S1", "lifting", 0.82, 1.12, "", ""], ["S1", "when", 1.12, 1.44, "", ""], ["S1", "I", 1.44, 1.64, "", ""], ["S1", "was", 1.64, 1.84, "", ""], ["S1", "about", 1.84, 2.1, "", ""], ["S1", "12", 2.1, 2.42, "", ""], ["S1", "years", 2.42, 2.74, "", ""], ["S1", "old.\u2193", 2.74, 3.16, "\u2198", ""], ["S1", "My", 3.3, 3.58, "", ""], ["S1", "mum\u2191", 3.58, 3.76, "", ""], ["S1", "bought", 3.76, 4.06, "", ""], ["S1", "me", 4.06, 4.24, "", ""], ["S1", "a", 4.24, 4.42, "", ""], ["S1", "magazine.", 4.42, 4.86, "\u2198", ""], ["S2", "Oh", 5.24, 5.5, "", ""], ["S2", "my", 5.5, 5.7, "", ""], ["S2", "god,", 5.7, 6.02, "", ""], ["S2", "that's", 6.2, 6.54, "", ""], ["S2", "so", 6.54, 6.68, "", ""], ["S2", "cute.", 6.68, 7.12, "\u2198", "sounds surprised 1.0"], ["S1", "Yeah,", 7.38, 7.66, "", ""], ["S1", "and", 7.92, 8.12, "", ""], ["S1", "then", 8.12, 8.28, "", ""], ["S1", "she", 8.28, 8.5, "", ""], ["S1", "gave", 8.5, 8.78, "", ""], ["S1", "me", 8.78, 8.96, "", ""], ["S1", "soup", 8.96, 9.3, "", ""], ["S1", "cans", 9.3, 9.64, "", ""], ["S1", "to", 9.64, 9.84, "", ""], ["S1", "curl", 9.84, 10.08, "", ""], ["S1", "in", 10.08, 10.22, "", ""], ["S1", "the", 10.22, 10.34, "", ""], ["S1", "kitchen,", 10.34, 10.74, "", ""], ["S1", "which", 11.02, 11.3, "", ""], ["S1", "was", 11.3, 11.52, "", ""], ["S1", "hilarious.", 11.52, 12.04, "", ""], ["S2", "That's", 12.58, 12.88, "", ""], ["S2", "sweet.", 12.88, 13.12, "", ""]], "bars": [0.119, 0.722, 0.715, 0.529, 0.136, 0.395, 0.602, 0.36, 0.489, 0.553, 0.568, 0.266, 0.535, 0.513, 0.591, 0.474, 0.524, 0.505, 0.631, 0.549, 0.485, 0.533, 0.073, 0.345, 0.655, 0.384, 0.579, 0.762, 0.585, 0.503, 0.413, 0.168, 0.09, 0.009, 0.0, 0.272, 0.614, 0.472, 0.657, 0.387, 0.647, 0.729, 0.172, 0.625, 0.757, 0.517, 0.531, 0.363, 0.481, 0.426, 0.303, 0.097, 0.054, 0.009, 0.0, 0.679, 0.894, 1.0, 0.804, 0.469, 0.789, 0.638, 0.249, 0.009, 0.0, 0.51, 0.592, 0.102, 0.694, 0.613, 0.124, 0.806, 0.715, 0.398, 0.013, 0.0, 0.072, 0.494, 0.619, 0.294, 0.14, 0.002, 0.001, 0.44, 0.513, 0.655, 0.373, 0.319, 0.595, 0.406, 0.699, 0.374, 0.578, 0.406, 0.285, 0.8, 0.202, 0.024, 0.479, 0.417, 0.186, 0.421, 0.097, 0.607, 0.611, 0.606, 0.533, 0.238, 0.563, 0.17, 0.313, 0.16, 0.066, 0.02, 0.0, 0.301, 0.589, 0.189, 0.617, 0.424, 0.549, 0.51, 0.654, 0.491, 0.282, 0.194, 0.105, 0.066, 0.043, 0.0, 0.013, 0.741, 0.273, 0.125, 0.807, 0.824, 0.483, 0.033, 0.0, 0.0], "dur": 13.48};
-const wave = document.getElementById("wave"), head = document.getElementById("head");
-const report = document.getElementById("report"), clock = document.getElementById("clock");
+const $ = id => document.getElementById(id);
 const fmt = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, "0")}`;
-document.getElementById("dur").textContent = fmt(DATA.dur);
+$("dur").textContent = fmt(DATA.dur);
 
-// who is talking at time t (for colouring the bars)
-const spkAt = t => { const w = DATA.words.find(w => t >= w[2] - 0.15 && t <= w[3] + 0.15); return w ? w[0] : null; };
+// waveform bars coloured by who is talking
+const wave = $("wave"), head = $("head");
+const spkAt = t => (DATA.words.find(w => t >= w[2] - 0.15 && t <= w[3] + 0.15) || ["S1"])[0];
 const bars = DATA.bars.map((v, i) => {
-  const b = document.createElement("b");
-  const t = (i + 0.5) / DATA.bars.length * DATA.dur;
-  b.style.height = Math.max(4, v * 64) + "px";
-  b.className = (spkAt(t) || "s1").toLowerCase();
+  const b = document.createElement("b"), t = (i + 0.5) / DATA.bars.length * DATA.dur;
+  b.style.height = Math.max(4, v * 66) + "px";
+  b.className = spkAt(t).toLowerCase();
   b.dataset.t = t;
   wave.appendChild(b);
   return b;
 });
 
-// build the report: one line per speaker turn, marks highlighted
+// report lines with marks
 const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-const decorate = t => esc(t).replace(/([↑↓]|\[\?\])/g, '<span class="x">$1</span>');
-let html = "", prev = null;
+const clean = s => s.replace(/[↑↓]|\[\?\]/g, "");
+const lineEnd = i => /[.?!]$/.test(clean(DATA.words[i][1]));
+let html = "", lineIdx = -1;
+const lineOf = [];
 DATA.words.forEach(([spk, text, , , end, emo], i) => {
-  if (i === 0 || spk !== prev || isLineEnd(i - 1)) {
-    if (prev !== null) html += "</span>";
-    html += `<span class="ln"><span class="who ${spk}">${spk}</span>`;
+  if (i === 0 || spk !== DATA.words[i - 1][0] || lineEnd(i - 1)) {
+    if (i) html += "</div></div>";
+    lineIdx++;
+    html += `<div class="ln" data-l="${lineIdx}"><span class="who ${spk}">${spk}</span><div>`;
   }
-  let inner = decorate(text);
+  lineOf.push(lineIdx);
+  let inner = esc(text).replace(/([↑↓]|\[\?\])/g, '<span class="x">$1</span>');
   if (end) inner += ` <span class="x">${end}</span>`;
-  if (emo) inner += ` <span class="emo">{${esc(emo)}}</span>`;
-  html += `<span class="w" data-i="${i}">${inner}</span> `;
-  prev = spk;
+  html += `<span class="w">${inner}</span> `;
+  if (emo) html += `<span class="emo">${esc(emo)}</span>`;
 });
-html += "</span>";
-function isLineEnd(i) { return /[.?!]$/.test(DATA.words[i][1].replace(/[↑↓]|\[\?\]/g, "")); }
-report.innerHTML = html;
-const ws = [...report.querySelectorAll(".w")];
+$("report").innerHTML = html + "</div></div>";
+const ws = [...document.querySelectorAll(".w")], lns = [...document.querySelectorAll(".ln")];
 
-let start = null, raf = null, offset = 0;
-function frame(now) {
-  if (start === null) start = now - offset * 1000;
-  const t = Math.min((now - start) / 1000, DATA.dur);
-  render(t);
-  if (t < DATA.dur) raf = requestAnimationFrame(frame);
-}
 function render(t) {
-  clock.textContent = fmt(t);
-  const x = 16 + (wave.clientWidth - 32) * (t / DATA.dur);
-  head.style.left = x + "px";
+  $("clock").textContent = fmt(t);
+  head.style.left = `calc(${(t / DATA.dur) * 100}% - 1px)`;
   bars.forEach(b => b.classList.toggle("on", +b.dataset.t <= t));
+  let cur = -1;
   ws.forEach((el, i) => {
     const [, , s, e] = DATA.words[i];
     el.classList.toggle("heard", s <= t);
     el.classList.toggle("now", s <= t && t <= e + 0.05);
+    if (s <= t) cur = lineOf[i];
   });
+  lns.forEach((l, i) => l.classList.toggle("cur", i === cur && t < DATA.dur));
 }
-function play(from = 0) { cancelAnimationFrame(raf); offset = from; start = null; raf = requestAnimationFrame(frame); }
-document.getElementById("play").onclick = () => play(0);
-wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.max(0, (e.clientX - r.left - 16) / (r.width - 32)) * DATA.dur); };
+let raf, start, from = 0;
+function frame(now) {
+  if (start == null) start = now - from * 1000;
+  const t = Math.min((now - start) / 1000, DATA.dur);
+  render(t);
+  if (t < DATA.dur) raf = requestAnimationFrame(frame);
+}
+function play(at = 0) { cancelAnimationFrame(raf); from = at; start = null; raf = requestAnimationFrame(frame); }
+$("play").onclick = () => play(0);
+wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * DATA.dur); };
+render(0);
 
-if (matchMedia("(prefers-reduced-motion: reduce)").matches) render(DATA.dur);
-else new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { play(0); o.disconnect(); } }, { threshold: .4 }).observe(wave);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (reduce) render(DATA.dur);
+else new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { play(0); o.disconnect(); } }, { threshold: .5 }).observe(wave);
 
-// memory bars fill when the pipeline scrolls into view
-new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { document.getElementById("pipe").classList.add("seen"); o.disconnect(); } }, { threshold: .3 }).observe(document.getElementById("pipe"));
+// reveal on scroll
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
+document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { $("steps").classList.add("seen"); o.disconnect(); } }, { threshold: .3 }).observe($("steps"));
 
-// macOS/Linux vs Windows commands; default to the visitor's system
+// OS tabs: default to the visitor's system
 function showOS(os) {
-  document.querySelectorAll(".os button").forEach(b => b.classList.toggle("on", b.dataset.os === os));
-  document.querySelectorAll("[data-os]:not(button)").forEach(el => el.hidden = el.dataset.os !== os);
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.os === os));
+  document.querySelectorAll("pre[data-os], ul[data-os]").forEach(el => el.hidden = el.dataset.os !== os);
 }
-document.querySelectorAll(".os button").forEach(b => b.onclick = () => showOS(b.dataset.os));
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showOS(b.dataset.os));
 if (/Win/.test(navigator.userAgentData?.platform || navigator.platform)) showOS("win");
 
-document.querySelectorAll(".copy").forEach(btn => btn.onclick = () => {
-  const text = document.getElementById(btn.dataset.copy).innerText.replace(/^copy/, "").replace(/^[$>] /gm, "").trim();
-  navigator.clipboard.writeText(text).then(() => { btn.textContent = "copied"; setTimeout(() => btn.textContent = "copy", 1400); });
-});
+$("copy").onclick = () => {
+  const pre = document.querySelector("pre[data-os]:not([hidden])");
+  const text = pre.innerText.split("\n").filter(l => !l.startsWith("#")).map(l => l.replace(/^[$>] /, "")).join("\n").trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const s = $("copy").querySelector("span"); s.textContent = "Copied"; setTimeout(() => s.textContent = "Copy", 1400);
+  });
+};
 </script>
 </body>
 </html>
