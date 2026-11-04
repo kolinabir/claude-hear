@@ -426,7 +426,7 @@ footer a:hover { color: var(--text); }
           <button class="key" id="listen" type="button" aria-label="Play the example and watch it listen">
             <span class="cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8.5a6 6 0 1 1 12 0c0 3.5-3 4.5-3 7.5a3.5 3.5 0 0 1-6.5 1.8"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.5 2-1.5 3.5"/></svg><b>listen</b></span>
           </button>
-          <span class="key-hint">Press it, or hit <kbd>L</kbd>, to play<br>the example with sound. 🔊</span>
+          <span class="key-hint">Press it, or hit <kbd>L</kbd>,<br>and watch it hear the example.</span>
         </div>
       </div>
       <div class="mascot-wrap">
@@ -782,39 +782,29 @@ function announce(t) {
     capTimer = setTimeout(() => caption.classList.remove("on"), 1800);
   }
 }
-// the real clip: plays with sound after a click or key press (browsers block sound before that)
-const audio = new Audio("two-voices.mp3");
-audio.preload = "auto";
-let raf, start, from = 0, withSound = false;
+let raf, start, from = 0;
 const frame = now => {
   if (start == null) start = now - from * 1000;
-  const t = withSound ? Math.min(audio.currentTime, DATA.dur) : Math.min((now - start) / 1000, DATA.dur);
-  const done = withSound ? audio.ended : t >= DATA.dur;
-  render(done ? DATA.dur : t);
-  if (!done) raf = requestAnimationFrame(frame);
+  const t = Math.min((now - start) / 1000, DATA.dur);
+  render(t);
+  if (t < DATA.dur) raf = requestAnimationFrame(frame);
 };
-const play = (at = 0, sound = false) => {
+const play = (at = 0) => {
   cancelAnimationFrame(raf); from = at; start = null;
   heardCount = DATA.words.filter(w => w[2] < at).length; ended = false;
-  audio.pause();
-  withSound = sound;
-  if (sound) {
-    audio.currentTime = at;
-    audio.play().catch(() => { withSound = false; start = null; });  // no sound allowed: fall back to the clock
-  }
   dispatchEvent(new Event("hear:play"));
   raf = requestAnimationFrame(frame);
 };
-$("play").onclick = () => play(0, true);
+$("play").onclick = () => play(0);
 
-// the listen key, plus L on the keyboard: both play with sound
+// the listen key, plus L on the keyboard
 const keyBtn = $("listen");
-const pressKey = () => { keyBtn.classList.add("down"); setTimeout(() => keyBtn.classList.remove("down"), 160); play(0, true); };
+const pressKey = () => { keyBtn.classList.add("down"); setTimeout(() => keyBtn.classList.remove("down"), 160); play(0); };
 keyBtn.onclick = pressKey;
 addEventListener("keydown", e => {
   if (e.key.toLowerCase() === "l" && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey && !/input|textarea/i.test(e.target.tagName)) pressKey();
 });
-wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * DATA.dur, true); };
+wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * DATA.dur); };
 if (reduce) render(DATA.dur);
 else {
   render(0);
