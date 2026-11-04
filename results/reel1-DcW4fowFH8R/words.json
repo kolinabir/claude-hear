@@ -1,0 +1,1469 @@
+[
+ {
+  "word": " I",
+  "start": 0.0,
+  "end": 0.68,
+  "probability": 0.28173828125,
+  "db": -27.9888916015625,
+  "hz": 103.86438732073715,
+  "speaker": "S1"
+ },
+ {
+  "word": " think",
+  "start": 0.68,
+  "end": 0.86,
+  "probability": 0.496826171875,
+  "db": -21.18756103515625,
+  "hz": 103.86438732073715,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 0.86,
+  "end": 0.86,
+  "probability": 0.99462890625,
+  "db": -24.19709014892578,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " just",
+  "start": 0.86,
+  "end": 1.0,
+  "probability": 0.953125,
+  "db": -20.83495330810547,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " always",
+  "start": 1.0,
+  "end": 1.26,
+  "probability": 0.998046875,
+  "db": -15.646391868591309,
+  "hz": 108.15185972040376,
+  "speaker": "S1"
+ },
+ {
+  "word": " thought",
+  "start": 1.26,
+  "end": 1.66,
+  "probability": 0.99267578125,
+  "db": -17.184782028198242,
+  "hz": 102.67140308191227,
+  "speaker": "S1"
+ },
+ {
+  "word": " being",
+  "start": 1.66,
+  "end": 1.96,
+  "probability": 0.9921875,
+  "db": -17.605432510375977,
+  "hz": 99.1740381785054,
+  "speaker": "S1"
+ },
+ {
+  "word": " jacked",
+  "start": 1.96,
+  "end": 2.28,
+  "probability": 0.94921875,
+  "db": -19.778310775756836,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 2.28,
+  "end": 2.4,
+  "probability": 0.98291015625,
+  "db": -23.496578216552734,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " cool.",
+  "start": 2.4,
+  "end": 2.68,
+  "probability": 0.99853515625,
+  "db": -20.515878677368164,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 3.26,
+  "end": 3.46,
+  "probability": 0.94482421875,
+  "db": -17.959447860717773,
+  "hz": 101.19984563310979,
+  "speaker": "S1"
+ },
+ {
+  "word": " remember",
+  "start": 3.46,
+  "end": 3.64,
+  "probability": 0.974609375,
+  "db": -12.042101860046387,
+  "hz": 127.8720601954181,
+  "speaker": "S1"
+ },
+ {
+  "word": " asking",
+  "start": 3.64,
+  "end": 3.86,
+  "probability": 0.98876953125,
+  "db": -10.603314399719238,
+  "hz": 115.57855643855098,
+  "speaker": "S1"
+ },
+ {
+  "word": " my",
+  "start": 3.86,
+  "end": 4.04,
+  "probability": 0.9580078125,
+  "db": -14.888801574707031,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " mom,",
+  "start": 4.04,
+  "end": 4.26,
+  "probability": 0.904296875,
+  "db": -13.13427448272705,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 4.44,
+  "end": 4.68,
+  "probability": 0.9716796875,
+  "db": -9.358500480651855,
+  "hz": 62.8376473692376,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 4.68,
+  "end": 4.86,
+  "probability": 0.9990234375,
+  "db": -9.808073043823242,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 4.86,
+  "end": 5.04,
+  "probability": 0.93115234375,
+  "db": -10.69151782989502,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " 11",
+  "start": 5.04,
+  "end": 5.5,
+  "probability": 0.87548828125,
+  "db": -17.675691604614258,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " or",
+  "start": 5.5,
+  "end": 5.68,
+  "probability": 0.9990234375,
+  "db": -15.205069541931152,
+  "hz": 115.91235947098146,
+  "speaker": "S1"
+ },
+ {
+  "word": " 12,",
+  "start": 5.68,
+  "end": 5.9,
+  "probability": 1.0,
+  "db": -17.096994400024414,
+  "hz": 115.91235947098146,
+  "speaker": "S1"
+ },
+ {
+  "word": " and",
+  "start": 6.14,
+  "end": 6.24,
+  "probability": 0.99658203125,
+  "db": -14.104120254516602,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " we",
+  "start": 6.24,
+  "end": 6.32,
+  "probability": 0.9990234375,
+  "db": -12.768115997314453,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " walked",
+  "start": 6.32,
+  "end": 6.58,
+  "probability": 0.9892578125,
+  "db": -12.394237518310547,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " past",
+  "start": 6.58,
+  "end": 6.82,
+  "probability": 0.99072265625,
+  "db": -12.308243751525879,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 6.82,
+  "end": 6.96,
+  "probability": 0.47021484375,
+  "db": -14.85551643371582,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " a",
+  "start": 6.96,
+  "end": 7.1,
+  "probability": 0.99267578125,
+  "db": -14.567030906677246,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " men's",
+  "start": 7.1,
+  "end": 7.36,
+  "probability": 0.958984375,
+  "db": -15.130314826965332,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " health",
+  "start": 7.36,
+  "end": 7.54,
+  "probability": 0.95458984375,
+  "db": -13.238533020019531,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " magazine,",
+  "start": 7.54,
+  "end": 7.9,
+  "probability": 0.9990234375,
+  "db": -17.01776695251465,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " and",
+  "start": 8.1,
+  "end": 8.4,
+  "probability": 0.99658203125,
+  "db": -13.333719253540039,
+  "hz": 60.0,
+  "speaker": "S1"
+ },
+ {
+  "word": " there",
+  "start": 8.4,
+  "end": 8.46,
+  "probability": 0.99658203125,
+  "db": -12.157447814941406,
+  "hz": 100.32638499462114,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 8.46,
+  "end": 8.52,
+  "probability": 0.53857421875,
+  "db": -14.075366020202637,
+  "hz": 100.61697741253343,
+  "speaker": "S1"
+ },
+ {
+  "word": " this",
+  "start": 8.52,
+  "end": 8.66,
+  "probability": 0.9921875,
+  "db": -15.24360179901123,
+  "hz": 98.034927194466,
+  "speaker": "S1"
+ },
+ {
+  "word": " guy",
+  "start": 8.66,
+  "end": 8.82,
+  "probability": 0.99951171875,
+  "db": -8.952831268310547,
+  "hz": 95.79580636279799,
+  "speaker": "S1"
+ },
+ {
+  "word": " who",
+  "start": 8.82,
+  "end": 8.98,
+  "probability": 0.9912109375,
+  "db": -10.16075325012207,
+  "hz": 95.24406311809196,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 8.98,
+  "end": 9.1,
+  "probability": 0.9931640625,
+  "db": -15.311914443969727,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 9.1,
+  "end": 9.28,
+  "probability": 0.97412109375,
+  "db": -11.014303207397461,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " doing",
+  "start": 9.28,
+  "end": 9.56,
+  "probability": 0.8017578125,
+  "db": -14.427472114562988,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " this,",
+  "start": 9.56,
+  "end": 9.76,
+  "probability": 1.0,
+  "db": -13.4999361038208,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " you",
+  "start": 9.82,
+  "end": 9.9,
+  "probability": 0.81787109375,
+  "db": -17.075700759887695,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " could",
+  "start": 9.9,
+  "end": 9.98,
+  "probability": 0.88232421875,
+  "db": -24.153182983398438,
+  "hz": 60.0,
+  "speaker": "S1"
+ },
+ {
+  "word": " see",
+  "start": 9.98,
+  "end": 10.12,
+  "probability": 0.994140625,
+  "db": -20.813533782958984,
+  "hz": 60.0,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 10.12,
+  "end": 10.3,
+  "probability": 0.98388671875,
+  "db": -13.179424285888672,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " his",
+  "start": 10.3,
+  "end": 10.54,
+  "probability": 0.9697265625,
+  "db": -15.12240219116211,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " delts",
+  "start": 10.54,
+  "end": 10.82,
+  "probability": 0.87158203125,
+  "db": -14.821639060974121,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " and",
+  "start": 10.82,
+  "end": 10.92,
+  "probability": 0.99169921875,
+  "db": -20.75913429260254,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " all",
+  "start": 10.92,
+  "end": 11.0,
+  "probability": 0.99951171875,
+  "db": -16.56492805480957,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " that",
+  "start": 11.0,
+  "end": 11.16,
+  "probability": 0.9990234375,
+  "db": -17.827163696289062,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " stuff,",
+  "start": 11.16,
+  "end": 11.38,
+  "probability": 0.99951171875,
+  "db": -10.583637237548828,
+  "hz": 108.15005551329962,
+  "speaker": "S1"
+ },
+ {
+  "word": " and",
+  "start": 11.44,
+  "end": 11.52,
+  "probability": 0.99853515625,
+  "db": -16.57413673400879,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 11.52,
+  "end": 11.58,
+  "probability": 0.99951171875,
+  "db": -14.305261611938477,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 11.58,
+  "end": 11.66,
+  "probability": 1.0,
+  "db": -13.323877334594727,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like,",
+  "start": 11.66,
+  "end": 11.76,
+  "probability": 1.0,
+  "db": -11.421655654907227,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " how",
+  "start": 11.76,
+  "end": 12.62,
+  "probability": 0.95654296875,
+  "db": -10.155488014221191,
+  "hz": 77.36221850637475,
+  "speaker": "S1"
+ },
+ {
+  "word": " do",
+  "start": 12.62,
+  "end": 12.7,
+  "probability": 1.0,
+  "db": -13.119958877563477,
+  "hz": 130.49713708200238,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 12.7,
+  "end": 12.78,
+  "probability": 1.0,
+  "db": -9.863757133483887,
+  "hz": 144.36541265740178,
+  "speaker": "S1"
+ },
+ {
+  "word": " look",
+  "start": 12.78,
+  "end": 12.94,
+  "probability": 1.0,
+  "db": -10.113016128540039,
+  "hz": 150.31973263489536,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 12.94,
+  "end": 13.08,
+  "probability": 1.0,
+  "db": -11.876673698425293,
+  "hz": 148.1652464233414,
+  "speaker": "S1"
+ },
+ {
+  "word": " that?",
+  "start": 13.08,
+  "end": 13.4,
+  "probability": 1.0,
+  "db": -13.410173416137695,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " And",
+  "start": 13.780000000000001,
+  "end": 14.14,
+  "probability": 0.99951171875,
+  "db": -15.340046882629395,
+  "hz": 99.74854753713453,
+  "speaker": "S1"
+ },
+ {
+  "word": " she",
+  "start": 14.14,
+  "end": 14.3,
+  "probability": 1.0,
+  "db": -14.229503631591797,
+  "hz": 103.2661724693196,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 14.3,
+  "end": 14.44,
+  "probability": 1.0,
+  "db": -11.920330047607422,
+  "hz": 98.88843796440011,
+  "speaker": "S1"
+ },
+ {
+  "word": " like,",
+  "start": 14.44,
+  "end": 14.64,
+  "probability": 1.0,
+  "db": -13.510881423950195,
+  "hz": 98.88843796440011,
+  "speaker": "S1"
+ },
+ {
+  "word": " you",
+  "start": 14.72,
+  "end": 14.76,
+  "probability": 0.99609375,
+  "db": -21.37211799621582,
+  "hz": 96.36521243755149,
+  "speaker": "S1"
+ },
+ {
+  "word": " gotta",
+  "start": 14.76,
+  "end": 14.98,
+  "probability": 0.96044921875,
+  "db": -17.671049118041992,
+  "hz": 108.15005551329962,
+  "speaker": "S1"
+ },
+ {
+  "word": "-",
+  "start": 14.98,
+  "end": 15.3,
+  "probability": 0.06842041015625,
+  "db": -20.579683303833008,
+  "hz": 103.2661724693196,
+  "speaker": "S1"
+ },
+ {
+  "word": " Do",
+  "start": 15.3,
+  "end": 15.46,
+  "probability": 0.322021484375,
+  "db": -16.06023597717285,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " steroids.",
+  "start": 15.46,
+  "end": 15.94,
+  "probability": 0.7392578125,
+  "db": -11.679121017456055,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " She",
+  "start": 17.04,
+  "end": 17.4,
+  "probability": 0.99560546875,
+  "db": -24.870635986328125,
+  "hz": 64.6789309825713,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 17.4,
+  "end": 17.5,
+  "probability": 0.90625,
+  "db": -18.27620506286621,
+  "hz": 79.40592438982483,
+  "speaker": "S1"
+ },
+ {
+  "word": " like,",
+  "start": 17.5,
+  "end": 17.58,
+  "probability": 1.0,
+  "db": -14.722761154174805,
+  "hz": 96.90890001600505,
+  "speaker": "S1"
+ },
+ {
+  "word": " you",
+  "start": 17.62,
+  "end": 17.68,
+  "probability": 0.9970703125,
+  "db": -16.167804718017578,
+  "hz": 97.47191360523553,
+  "speaker": "S1"
+ },
+ {
+  "word": " gotta",
+  "start": 17.68,
+  "end": 17.82,
+  "probability": 0.99951171875,
+  "db": -15.7905855178833,
+  "hz": 99.1740381785054,
+  "speaker": "S1"
+ },
+ {
+  "word": " lift",
+  "start": 17.82,
+  "end": 18.42,
+  "probability": 0.80224609375,
+  "db": -10.84188461303711,
+  "hz": 102.67140308191227,
+  "speaker": "S1"
+ },
+ {
+  "word": " weights.",
+  "start": 18.42,
+  "end": 18.68,
+  "probability": 1.0,
+  "db": -14.491849899291992,
+  "hz": 111.31909403295714,
+  "speaker": "S1"
+ },
+ {
+  "word": " She",
+  "start": 18.86,
+  "end": 19.06,
+  "probability": 0.9990234375,
+  "db": -16.55952262878418,
+  "hz": 60.0,
+  "speaker": "S1"
+ },
+ {
+  "word": " bought",
+  "start": 19.06,
+  "end": 19.28,
+  "probability": 0.99951171875,
+  "db": -10.142879486083984,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " the",
+  "start": 19.28,
+  "end": 19.4,
+  "probability": 0.9990234375,
+  "db": -12.022500991821289,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " magazine",
+  "start": 19.4,
+  "end": 19.7,
+  "probability": 0.99951171875,
+  "db": -11.497802734375,
+  "hz": 90.94299399062388,
+  "speaker": "S1"
+ },
+ {
+  "word": " for",
+  "start": 19.7,
+  "end": 19.9,
+  "probability": 0.99755859375,
+  "db": -15.367462158203125,
+  "hz": 88.6099383116127,
+  "speaker": "S1"
+ },
+ {
+  "word": " me,",
+  "start": 19.9,
+  "end": 20.0,
+  "probability": 1.0,
+  "db": -17.056869506835938,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " so",
+  "start": 20.0,
+  "end": 20.12,
+  "probability": 0.86962890625,
+  "db": -17.433731079101562,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 20.12,
+  "end": 20.18,
+  "probability": 0.99951171875,
+  "db": -14.571356773376465,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 20.18,
+  "end": 20.28,
+  "probability": 1.0,
+  "db": -15.059896469116211,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 20.28,
+  "end": 20.44,
+  "probability": 0.9951171875,
+  "db": -16.350337982177734,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " so",
+  "start": 20.44,
+  "end": 20.66,
+  "probability": 0.87841796875,
+  "db": -13.685599327087402,
+  "hz": 480.0,
+  "speaker": "S1"
+ },
+ {
+  "word": " obsessed",
+  "start": 20.66,
+  "end": 20.88,
+  "probability": 0.99951171875,
+  "db": -12.893223762512207,
+  "hz": 499.805833216707,
+  "speaker": "S1"
+ },
+ {
+  "word": " with",
+  "start": 20.88,
+  "end": 21.06,
+  "probability": 1.0,
+  "db": -18.279237747192383,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " it.",
+  "start": 21.06,
+  "end": 21.22,
+  "probability": 0.99951171875,
+  "db": -18.413135528564453,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " And",
+  "start": 21.4,
+  "end": 21.5,
+  "probability": 0.99951171875,
+  "db": -13.577817916870117,
+  "hz": 101.78609037493825,
+  "speaker": "S1"
+ },
+ {
+  "word": " then",
+  "start": 21.5,
+  "end": 21.68,
+  "probability": 0.99951171875,
+  "db": -13.07592487335205,
+  "hz": 99.1740381785054,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 21.68,
+  "end": 21.92,
+  "probability": 0.9921875,
+  "db": -13.04124641418457,
+  "hz": 98.034927194466,
+  "speaker": "S1"
+ },
+ {
+  "word": " went",
+  "start": 21.92,
+  "end": 22.04,
+  "probability": 0.99853515625,
+  "db": -11.117177963256836,
+  "hz": 97.75260737860712,
+  "speaker": "S1"
+ },
+ {
+  "word": " back,",
+  "start": 22.04,
+  "end": 22.46,
+  "probability": 1.0,
+  "db": -9.294585227966309,
+  "hz": 95.24406311809196,
+  "speaker": "S1"
+ },
+ {
+  "word": " and",
+  "start": 22.74,
+  "end": 23.08,
+  "probability": 1.0,
+  "db": -11.432968139648438,
+  "hz": 100.32638499462114,
+  "speaker": "S1"
+ },
+ {
+  "word": " we're",
+  "start": 23.08,
+  "end": 23.22,
+  "probability": 0.8076171875,
+  "db": -11.233293533325195,
+  "hz": 96.07327609320159,
+  "speaker": "S1"
+ },
+ {
+  "word": " in",
+  "start": 23.22,
+  "end": 23.28,
+  "probability": 1.0,
+  "db": -12.26046371459961,
+  "hz": 93.06868571002408,
+  "speaker": "S1"
+ },
+ {
+  "word": " the",
+  "start": 23.28,
+  "end": 23.34,
+  "probability": 1.0,
+  "db": -12.42342758178711,
+  "hz": 90.42070930161239,
+  "speaker": "S1"
+ },
+ {
+  "word": " kitchen,",
+  "start": 23.34,
+  "end": 23.62,
+  "probability": 1.0,
+  "db": -11.159866333007812,
+  "hz": 97.75586888314994,
+  "speaker": "S1"
+ },
+ {
+  "word": " and",
+  "start": 24.5,
+  "end": 24.66,
+  "probability": 0.9658203125,
+  "db": -15.917062759399414,
+  "hz": 122.804867039613,
+  "speaker": "S1"
+ },
+ {
+  "word": " she",
+  "start": 24.66,
+  "end": 24.72,
+  "probability": 0.9970703125,
+  "db": -14.195208549499512,
+  "hz": 111.98076984931143,
+  "speaker": "S1"
+ },
+ {
+  "word": " gave",
+  "start": 24.72,
+  "end": 24.86,
+  "probability": 1.0,
+  "db": -11.374796867370605,
+  "hz": 120.46002407229786,
+  "speaker": "S1"
+ },
+ {
+  "word": " me",
+  "start": 24.86,
+  "end": 24.98,
+  "probability": 1.0,
+  "db": -12.055173873901367,
+  "hz": 117.6380726986962,
+  "speaker": "S1"
+ },
+ {
+  "word": " soup",
+  "start": 24.98,
+  "end": 25.24,
+  "probability": 0.97900390625,
+  "db": -13.441786766052246,
+  "hz": 100.32638499462114,
+  "speaker": "S1"
+ },
+ {
+  "word": " cans",
+  "start": 25.24,
+  "end": 25.6,
+  "probability": 0.9970703125,
+  "db": -11.119537353515625,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " to",
+  "start": 25.6,
+  "end": 26.9,
+  "probability": 0.89404296875,
+  "db": -14.719868659973145,
+  "hz": 64.6789309825713,
+  "speaker": "S1"
+ },
+ {
+  "word": " curl.",
+  "start": 26.9,
+  "end": 27.1,
+  "probability": 0.9921875,
+  "db": -11.876603126525879,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " Oh,",
+  "start": 27.28,
+  "end": 27.64,
+  "probability": 0.97607421875,
+  "db": -10.495988845825195,
+  "hz": 138.64232362467274,
+  "speaker": "S1"
+ },
+ {
+  "word": " God.",
+  "start": 27.74,
+  "end": 27.98,
+  "probability": 0.90625,
+  "db": -10.859236717224121,
+  "hz": 112.61255960053718,
+  "speaker": "S1"
+ },
+ {
+  "word": " Yeah,",
+  "start": 27.98,
+  "end": 28.26,
+  "probability": 0.1806640625,
+  "db": -11.909189224243164,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " so",
+  "start": 28.68,
+  "end": 28.74,
+  "probability": 0.96826171875,
+  "db": -12.39167594909668,
+  "hz": 103.2661724693196,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 28.74,
+  "end": 28.9,
+  "probability": 0.96142578125,
+  "db": -11.35633373260498,
+  "hz": 98.31888247238041,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 28.9,
+  "end": 29.02,
+  "probability": 0.99755859375,
+  "db": -10.684671401977539,
+  "hz": 99.1740381785054,
+  "speaker": "S1"
+ },
+ {
+  "word": " like,",
+  "start": 29.02,
+  "end": 29.22,
+  "probability": 0.65380859375,
+  "db": -11.651493072509766,
+  "hz": 93.87895943460745,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 29.3,
+  "end": 29.42,
+  "probability": 0.978515625,
+  "db": -12.233580589294434,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 29.42,
+  "end": 29.54,
+  "probability": 0.9990234375,
+  "db": -13.755349159240723,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " that",
+  "start": 29.54,
+  "end": 29.66,
+  "probability": 0.966796875,
+  "db": -13.523841857910156,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " young.",
+  "start": 29.66,
+  "end": 29.86,
+  "probability": 0.98388671875,
+  "db": -17.160036087036133,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " You",
+  "start": 30.14,
+  "end": 30.18,
+  "probability": 0.325927734375,
+  "db": -14.736783981323242,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " know,",
+  "start": 30.18,
+  "end": 30.22,
+  "probability": 0.9853515625,
+  "db": -12.798126220703125,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " we",
+  "start": 30.24,
+  "end": 30.34,
+  "probability": 0.425048828125,
+  "db": -11.245526313781738,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " were",
+  "start": 30.34,
+  "end": 30.38,
+  "probability": 0.52001953125,
+  "db": -13.414987564086914,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 30.38,
+  "end": 30.52,
+  "probability": 0.2109375,
+  "db": -13.260858535766602,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " 11",
+  "start": 30.52,
+  "end": 30.78,
+  "probability": 0.5546875,
+  "db": -10.783644676208496,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " or",
+  "start": 30.78,
+  "end": 30.98,
+  "probability": 0.884765625,
+  "db": -10.48572063446045,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " 12.",
+  "start": 30.98,
+  "end": 31.18,
+  "probability": 0.99853515625,
+  "db": -12.188573837280273,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " And",
+  "start": 31.52,
+  "end": 31.78,
+  "probability": 0.65771484375,
+  "db": -10.658172607421875,
+  "hz": 78.03574873249721,
+  "speaker": "S1"
+ },
+ {
+  "word": " then",
+  "start": 31.78,
+  "end": 31.9,
+  "probability": 0.93408203125,
+  "db": -10.539777755737305,
+  "hz": 102.97222331741992,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 31.9,
+  "end": 31.94,
+  "probability": 0.966796875,
+  "db": -11.961008071899414,
+  "hz": 101.49212143577383,
+  "speaker": "S1"
+ },
+ {
+  "word": " think",
+  "start": 31.94,
+  "end": 32.06,
+  "probability": 0.9990234375,
+  "db": -11.622039794921875,
+  "hz": 100.90756983044574,
+  "speaker": "S1"
+ },
+ {
+  "word": " it's",
+  "start": 32.06,
+  "end": 32.16,
+  "probability": 0.685546875,
+  "db": -15.945577621459961,
+  "hz": 61.4024335198065,
+  "speaker": "S1"
+ },
+ {
+  "word": " my",
+  "start": 32.16,
+  "end": 32.28,
+  "probability": 0.9580078125,
+  "db": -11.337676048278809,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " birthday,",
+  "start": 32.28,
+  "end": 32.62,
+  "probability": 0.9990234375,
+  "db": -12.067975044250488,
+  "hz": 87.84514175673752,
+  "speaker": "S1"
+ },
+ {
+  "word": " she",
+  "start": 32.66,
+  "end": 32.8,
+  "probability": 0.994140625,
+  "db": -12.551292419433594,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " got",
+  "start": 32.8,
+  "end": 32.98,
+  "probability": 0.9990234375,
+  "db": -13.752176284790039,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " me",
+  "start": 32.98,
+  "end": 33.26,
+  "probability": 0.998046875,
+  "db": -14.700650215148926,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 33.26,
+  "end": 33.88,
+  "probability": 0.63525390625,
+  "db": -12.381919860839844,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " some",
+  "start": 33.88,
+  "end": 34.1,
+  "probability": 0.9033203125,
+  "db": -10.99038028717041,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " book.",
+  "start": 34.1,
+  "end": 34.4,
+  "probability": 0.98828125,
+  "db": -10.748861312866211,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " I",
+  "start": 34.48,
+  "end": 34.54,
+  "probability": 0.7470703125,
+  "db": -15.20388412475586,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 34.54,
+  "end": 34.62,
+  "probability": 0.96435546875,
+  "db": -14.296866416931152,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " called",
+  "start": 34.62,
+  "end": 34.72,
+  "probability": 0.31298828125,
+  "db": -15.982170104980469,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 34.72,
+  "end": 34.84,
+  "probability": 0.8662109375,
+  "db": -13.715128898620605,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " the",
+  "start": 34.84,
+  "end": 34.94,
+  "probability": 0.81201171875,
+  "db": -11.558588027954102,
+  "hz": 99.75520379037029,
+  "speaker": "S1"
+ },
+ {
+  "word": " Navy",
+  "start": 34.94,
+  "end": 35.16,
+  "probability": 0.9775390625,
+  "db": -12.008356094360352,
+  "hz": 88.86585313719385,
+  "speaker": "S1"
+ },
+ {
+  "word": " SEAL",
+  "start": 35.16,
+  "end": 35.6,
+  "probability": 0.904296875,
+  "db": -16.107637405395508,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " training",
+  "start": 35.6,
+  "end": 36.02,
+  "probability": 0.85693359375,
+  "db": -14.661112785339355,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " program",
+  "start": 36.02,
+  "end": 36.44,
+  "probability": 0.99072265625,
+  "db": -18.857358932495117,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " or",
+  "start": 36.44,
+  "end": 36.62,
+  "probability": 0.92431640625,
+  "db": -20.609342575073242,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " something",
+  "start": 36.62,
+  "end": 36.82,
+  "probability": 0.9921875,
+  "db": -19.37970733642578,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 36.82,
+  "end": 37.04,
+  "probability": 0.8037109375,
+  "db": -19.49843406677246,
+  "hz": 63.201662157290144,
+  "speaker": "S1"
+ },
+ {
+  "word": " that.",
+  "start": 37.04,
+  "end": 37.14,
+  "probability": 0.998046875,
+  "db": -20.447614669799805,
+  "hz": 62.47572915208839,
+  "speaker": "S1"
+ },
+ {
+  "word": " And",
+  "start": 37.16,
+  "end": 37.24,
+  "probability": 0.68603515625,
+  "db": -14.407773971557617,
+  "hz": 134.32099507407742,
+  "speaker": "S1"
+ },
+ {
+  "word": " it",
+  "start": 37.24,
+  "end": 37.28,
+  "probability": 0.98193359375,
+  "db": -9.694670677185059,
+  "hz": 131.6189975633551,
+  "speaker": "S1"
+ },
+ {
+  "word": " was",
+  "start": 37.28,
+  "end": 37.38,
+  "probability": 0.99755859375,
+  "db": -9.55549430847168,
+  "hz": 130.8609279198309,
+  "speaker": "S1"
+ },
+ {
+  "word": " just",
+  "start": 37.38,
+  "end": 37.5,
+  "probability": 0.99072265625,
+  "db": -10.835033416748047,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " like",
+  "start": 37.5,
+  "end": 37.64,
+  "probability": 0.99365234375,
+  "db": -11.725505828857422,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " buying",
+  "start": 37.64,
+  "end": 37.88,
+  "probability": 0.5537109375,
+  "db": -16.04906463623047,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " me",
+  "start": 37.88,
+  "end": 38.02,
+  "probability": 0.89892578125,
+  "db": -17.574459075927734,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " stuff.",
+  "start": 38.02,
+  "end": 38.28,
+  "probability": 0.99365234375,
+  "db": -13.178365707397461,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " That's",
+  "start": 39.72,
+  "end": 40.0,
+  "probability": 0.8681640625,
+  "db": -13.0350341796875,
+  "hz": null,
+  "speaker": "S1"
+ },
+ {
+  "word": " sweet.",
+  "start": 40.0,
+  "end": 40.16,
+  "probability": 0.9990234375,
+  "db": -15.355989456176758,
+  "hz": null,
+  "speaker": "S1"
+ }
+]
