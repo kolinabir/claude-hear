@@ -77,6 +77,9 @@
       "@id": "https://kolinabir.github.io/claude-hear/#faq",
       "mainEntity": [
         {"@type": "Question", "name": "Can Claude listen to audio?", "acceptedAnswer": {"@type": "Answer", "text": "Not on its own: Claude has no audio input. hear gives Claude Code a way to listen. It turns an audio or video file into a text report (a word-timed transcript, speakers, delivery marks, emotion guesses and sound labels) plus a spectrogram image, and Claude reads those."}},
+        {"@type": "Question", "name": "What does hear give Claude?", "acceptedAnswer": {"@type": "Answer", "text": "A report Claude can read: a transcript with a time and confidence for every word, speaker labels (S1, S2…) with each speaker's share of the talking, delivery marks for loudness, pitch, pauses, pace and rising or falling line ends, emotion guesses when they're confident, labels for sounds like music, laughter and applause, and a spectrogram image of the audio."}},
+        {"@type": "Question", "name": "How does hear work?", "acceptedAnswer": {"@type": "Answer", "text": "It runs five local stages one at a time: sound labels with CLAP, speech-to-text with Whisper large-v3 turbo, loudness and pitch with librosa, speaker fingerprints with WeSpeaker, and emotion with emotion2vec+. Each stage loads, writes its result and exits before the next starts, so peak memory is the biggest stage, not the sum."}},
+        {"@type": "Question", "name": "What do the marks in the report mean?", "acceptedAnswer": {"@type": "Answer", "text": "**word** is clearly louder, (word) is clearly quieter, ↑ and ↓ mean pitch well above or below that speaker's normal, ↗ and ↘ mean a line ends rising or falling, ‖0.8s‖ is a pause, [?] means Whisper was unsure, and {sounds happy 0.9} is an emotion guess."}},
         {"@type": "Question", "name": "Does hear send my audio to the cloud?", "acceptedAnswer": {"@type": "Answer", "text": "No. Every model runs on your own computer. The only network use is the one-time download of about 3.5 GB of models."}},
         {"@type": "Question", "name": "Which operating systems does hear support?", "acceptedAnswer": {"@type": "Answer", "text": "macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows, Linux and Intel Macs use faster-whisper, on an NVIDIA GPU when CUDA 12 and cuDNN 9 are installed, otherwise on the CPU. Windows and Linux support is in beta."}},
         {"@type": "Question", "name": "How much RAM and disk does hear need?", "acceptedAnswer": {"@type": "Answer", "text": "About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages."}},
@@ -258,52 +261,6 @@ h2 em { font-style: normal; color: var(--jade); }
 .sub { color: var(--text-2); font-size: 18px; max-width: 58ch; margin: 0; }
 .sec-head { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: end; margin-bottom: 56px; }
 
-/* bento */
-.bento { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: minmax(200px, auto); gap: 16px; }
-.tile { position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(180deg, var(--panel), var(--bg-2)); padding: 28px; overflow: hidden; }
-.tile h3 { margin: 0 0 8px; font-size: 21px; font-weight: 600; letter-spacing: -.025em; }
-.tile p { margin: 0; color: var(--text-2); font-size: 15px; max-width: 42ch; }
-.t-marks { grid-column: span 4; grid-row: span 2; }
-.t-speak, .t-sounds { grid-column: span 2; }
-.t-emo, .t-spec, .t-local { grid-column: span 2; }
-.ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: rgba(0, 211, 251, .08); border: 1px solid var(--line-2); color: var(--ocean); margin-bottom: 22px; }
-.ico svg { width: 21px; height: 21px; }
-.marks { margin-top: 26px; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-.mk { display: flex; flex-direction: column; gap: 4px; padding: 15px 18px; border-bottom: 1px solid var(--line); background: rgba(2, 8, 23, .35); }
-.mk:nth-child(odd) { border-right: 1px solid var(--line); }
-.mk:nth-last-child(-n+2) { border-bottom: 0; }
-.mk code { font-size: 14.5px; color: var(--text); }
-.mk span { font-size: 13.5px; color: var(--text-2); }
-.t-local { background: linear-gradient(140deg, var(--sapphire), #0a6fd6 55%, var(--ocean)); border-color: transparent; }
-.t-local p { color: rgba(255, 255, 255, .85); }
-.t-local .ico { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); color: #fff; }
-.t-local .big { font-size: 44px; font-weight: 600; letter-spacing: -.04em; line-height: 1; margin-bottom: 8px; }
-.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.chip { font: 12.5px "JetBrains Mono", monospace; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--text-2); }
-.chip.on { color: var(--jade-ink); background: var(--jade); border-color: var(--jade); }
-.mini-spec { display: flex; align-items: flex-end; gap: 3px; height: 54px; margin-top: 20px; }
-.mini-spec i { flex: 1; border-radius: 2px; background: linear-gradient(0deg, var(--sapphire), var(--ocean) 60%, var(--jade)); opacity: .85; }
-
-/* pipeline */
-.pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
-.stage-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; background: var(--bg-2); display: flex; flex-direction: column; }
-.stage-card .n { font: 500 12px "JetBrains Mono", monospace; color: var(--text-3); }
-.stage-card h3 { margin: 12px 0 2px; font: 600 17px "JetBrains Mono", monospace; }
-.stage-card .m { font-size: 13px; color: var(--text-3); }
-.stage-card p { margin: 14px 0 18px; font-size: 14.5px; color: var(--text-2); flex: 1; }
-.ram { font: 12px "JetBrains Mono", monospace; color: var(--text-2); display: flex; justify-content: space-between; }
-.bar { height: 6px; border-radius: 6px; background: rgba(170, 184, 214, .1); margin-top: 8px; overflow: hidden; }
-.bar i { display: block; height: 100%; width: 0; border-radius: 6px; background: var(--ocean); transition: width 1.2s cubic-bezier(.2, .8, .2, 1); }
-.stage-card.peak { border-color: rgba(131, 253, 128, .4); background: linear-gradient(180deg, rgba(131, 253, 128, .07), var(--bg-2)); }
-.stage-card.peak .bar i { background: var(--jade); }
-.seen .bar i { width: var(--w); }
-.numbers { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.numbers div { padding: 26px 24px; border-right: 1px solid var(--line); }
-.numbers div:last-child { border-right: 0; }
-.numbers strong { display: block; font-size: 40px; font-weight: 600; letter-spacing: -.04em; line-height: 1.05; }
-.numbers strong em { font-style: normal; color: var(--jade); }
-.numbers span { font-size: 14px; color: var(--text-3); }
-
 /* platforms */
 .plats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .plat { border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; background: var(--bg-2); }
@@ -412,8 +369,7 @@ footer a:hover { color: var(--text); }
   <div class="wrap">
     <a class="brand" href="#top" aria-label="hear, home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>hear</a>
     <nav class="links" aria-label="Main">
-      <a class="hide-md" href="#features">Features</a>
-      <a class="hide-md" href="#how">How it works</a>
+      <a class="hide-md" href="#platforms">Platforms</a>
       <a class="hide-sm" href="#faq">FAQ</a>
       <a class="hide-sm" href="https://github.com/kolinabir/claude-hear">GitHub</a>
       <a class="pill-btn" href="#install">Install
@@ -487,86 +443,6 @@ footer a:hover { color: var(--text); }
     </div>
     <p class="sr">Built on Whisper large-v3 turbo, CLAP, WeSpeaker, emotion2vec+, librosa, ffmpeg, MLX and faster-whisper.</p>
   </div>
-
-  <section id="features" aria-labelledby="f-title">
-    <div class="wrap">
-      <div class="sec-head rv">
-        <div>
-          <p class="kicker">What Claude gets</p>
-          <h2 id="f-title">The words, and <em>the way</em> they were said.</h2>
-        </div>
-        <p class="sub">A transcript alone loses half the meaning. hear writes the delivery, the speakers and the sounds around them into plain text that Claude can reason about, quote and search.</p>
-      </div>
-      <div class="bento">
-        <article class="tile t-marks rv">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h3l3-8 4 16 3-10 2 2h5"/></svg></div>
-          <h3>Delivery marks, right on the words</h3>
-          <p>Loudness, pitch, pauses, pace and intonation become a handful of small marks. Compact enough to fit long recordings into Claude's context.</p>
-          <div class="marks">
-            <div class="mk"><code>**great**</code><span>clearly louder: emphasis</span></div>
-            <div class="mk"><code>(or something)</code><span>clearly quieter: trailing off</span></div>
-            <div class="mk"><code>so<span class="x">↑</span> obsessed<span class="x">↑</span></code><span>pitch above that speaker's normal</span></div>
-            <div class="mk"><code>that? <span class="x">↗</span></code><span>line ends rising, like a question</span></div>
-            <div class="mk"><code>kitchen, <span class="x">‖0.9s‖</span></code><span>a measured pause</span></div>
-            <div class="mk"><code>Two<span class="x">[?]</span></code><span>unsure word: treat as a guess</span></div>
-          </div>
-        </article>
-        <article class="tile t-speak rv">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg></div>
-          <h3>Who's speaking</h3>
-          <p>A voice fingerprint for every line, grouped into S1, S2 and so on, with each speaker's share of the talking.</p>
-        </article>
-        <article class="tile t-sounds rv">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-          <h3>Sounds around the speech</h3>
-          <p>Background music, laughter, applause and whooshes, labelled in 2-second windows, every second.</p>
-          <div class="chip-row"><span class="chip on">music</span><span class="chip">laughter</span><span class="chip">applause</span><span class="chip">whoosh</span></div>
-        </article>
-        <article class="tile t-emo rv">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8 14.5s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/></svg></div>
-          <h3>Emotion, when it's clear</h3>
-          <p>A tone guess per line, shown only when the model is confident and it isn't neutral.</p>
-          <div class="chip-row"><span class="chip on">sounds surprised 1.0</span></div>
-        </article>
-        <article class="tile t-spec rv">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 16v-3M10 16V9M13 16v-5M16 16V8M19 16v-2"/></svg></div>
-          <h3>A picture of the sound</h3>
-          <p>A spectrogram Claude can look at, for what labels miss: hum, hiss, cuts.</p>
-          <div class="mini-spec" id="spec" aria-hidden="true"></div>
-        </article>
-        <article class="tile t-local rv">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
-          <h3 class="big">0 bytes</h3>
-          <p>leave your machine. Every model runs locally; only the one-time model download uses the network.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section id="how" aria-labelledby="h-title" style="background:linear-gradient(180deg,var(--bg),var(--bg-2));border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
-    <div class="wrap">
-      <div class="sec-head rv">
-        <div>
-          <p class="kicker">How it works</p>
-          <h2 id="h-title">Five stages, <em>one at a time.</em></h2>
-        </div>
-        <p class="sub">Each stage is its own process: it loads, writes its result, exits and hands the memory back. So the peak is the biggest stage, never the sum. Measured on an Apple M4 with a 40-second clip.</p>
-      </div>
-      <ol class="pipe" id="pipe" style="list-style:none;margin:0;padding:0">
-        <li class="stage-card rv"><span class="n">01</span><h3>sounds</h3><span class="m">CLAP, zero-shot</span><p>Labels 2-second windows, every second: music, laughter, applause…</p><div class="ram"><span>1.3 GB</span><span>11 s</span></div><div class="bar"><i style="--w:54%"></i></div></li>
-        <li class="stage-card peak rv"><span class="n">02 · peak</span><h3>asr</h3><span class="m">Whisper large-v3 turbo</span><p>Every word with its start, end and confidence.</p><div class="ram"><span>2.4 GB</span><span>20 s</span></div><div class="bar"><i style="--w:100%"></i></div></li>
-        <li class="stage-card rv"><span class="n">03</span><h3>prosody</h3><span class="m">loudness + pyin pitch</span><p>dB and Hz per word, turned into the marks.</p><div class="ram"><span>0.25 GB</span><span>6 s</span></div><div class="bar"><i style="--w:10%"></i></div></li>
-        <li class="stage-card rv"><span class="n">04</span><h3>speakers</h3><span class="m">WeSpeaker ResNet34</span><p>A voice fingerprint per line, grouped into S1, S2…</p><div class="ram"><span>0.15 GB</span><span>1 s</span></div><div class="bar"><i style="--w:6%"></i></div></li>
-        <li class="stage-card rv"><span class="n">05</span><h3>emotion</h3><span class="m">emotion2vec+, ONNX</span><p>A tone guess for each line longer than 1.5 s.</p><div class="ram"><span>1.1 GB</span><span>4 s</span></div><div class="bar"><i style="--w:46%"></i></div></li>
-      </ol>
-      <div class="numbers rv">
-        <div><strong>2.4<em> GB</em></strong><span>peak RAM, any clip length</span></div>
-        <div><strong>~1.2<em>×</em></strong><span>clip length on Apple Silicon</span></div>
-        <div><strong>3.5<em> GB</em></strong><span>of models, downloaded once</span></div>
-        <div><strong>3</strong><span>platforms: macOS, Windows, Linux</span></div>
-      </div>
-    </div>
-  </section>
 
   <section id="platforms" aria-labelledby="p-title">
     <div class="wrap">
@@ -661,6 +537,9 @@ footer a:hover { color: var(--text); }
       </div>
       <div class="rv">
         <details open><summary>Can Claude listen to audio?</summary><p>Not on its own: Claude has no audio input. hear gives Claude Code a way to listen. It turns an audio or video file into a text report (a word-timed transcript, speakers, delivery marks, emotion guesses and sound labels) plus a spectrogram image, and Claude reads those.</p></details>
+        <details><summary>What does hear give Claude?</summary><p>A report Claude can read: a transcript with a time and confidence for every word, speaker labels (S1, S2…) with each speaker's share of the talking, delivery marks for loudness, pitch, pauses, pace and rising or falling line ends, emotion guesses when they're confident, labels for sounds like music, laughter and applause, and a spectrogram image of the audio.</p></details>
+        <details><summary>How does hear work?</summary><p>It runs five local stages one at a time: sound labels with CLAP, speech-to-text with Whisper large-v3 turbo, loudness and pitch with librosa, speaker fingerprints with WeSpeaker, and emotion with emotion2vec+. Each stage loads, writes its result and exits before the next starts, so peak memory is the biggest stage, not the sum.</p></details>
+        <details><summary>What do the marks in the report mean?</summary><p>**word** is clearly louder, (word) is clearly quieter, ↑ and ↓ mean pitch well above or below that speaker's normal, ↗ and ↘ mean a line ends rising or falling, ‖0.8s‖ is a pause, [?] means Whisper was unsure, and {sounds happy 0.9} is an emotion guess.</p></details>
         <details><summary>Does hear send my audio to the cloud?</summary><p>No. Every model runs on your own computer. The only network use is the one-time download of about 3.5 GB of models.</p></details>
         <details><summary>Which operating systems does hear support?</summary><p>macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows, Linux and Intel Macs use faster-whisper, on an NVIDIA GPU when CUDA 12 and cuDNN 9 are installed, otherwise on the CPU. Windows and Linux support is in beta.</p></details>
         <details><summary>How much RAM and disk does hear need?</summary><p>About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages.</p></details>
@@ -820,13 +699,9 @@ else {
   new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { setTimeout(() => { if (ended) play(0); }, 400); o.disconnect(); } }, { threshold: .4 }).observe(wave);
 }
 
-// mini spectrogram bars in the bento
-(() => { const s = $("spec"); for (let i = 0; i < 48; i++) { const b = document.createElement("i"); b.style.height = (20 + Math.abs(Math.sin(i * .7) * 60 + Math.sin(i * 2.3) * 20)) + "%"; s.appendChild(b); } })();
-
 // reveal on scroll, pipeline bars
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
 document.querySelectorAll(".rv").forEach(el => io.observe(el));
-new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { $("pipe").classList.add("seen"); o.disconnect(); } }, { threshold: .3 }).observe($("pipe"));
 
 // OS tabs (default to the visitor's system) and copy buttons
 const isWin = /Win/.test(navigator.userAgentData?.platform || navigator.platform);
