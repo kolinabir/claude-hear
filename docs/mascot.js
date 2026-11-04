@@ -210,12 +210,14 @@ export function createMascot(canvas, { still = false } = {}) {
     hop: new Spring(0, 70, 7), squash: new Spring(1, 180, 9),
     tilt: new Spring(0, 90, 9), nod: new Spring(0, 110, 10), turn: new Spring(0, 45, 10),
     open: new Spring(1, 320, 24), size: new Spring(1, 140, 8), brow: new Spring(-0.04, 160, 10),
+    lean: new Spring(0, 55, 9),
     aura: new Spring(0, 30, 9), auraScale: new Spring(1, 60, 7), bodyGlow: new Spring(0, 40, 9), eyeGlow: new Spring(0, 30, 9),
   };
   let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
   let phase = "idle", chargeStart = 0, chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
   const sfx = createSfx();
   const CHARGE = 3.0;                                       // seconds of charging before the burst
+  let cupSide = 0, startledUntil = 0;
   let spinStart = -9, dragging = false, dragX = 0, dragMoved = 0, dragVel = 0;
   const SPIN = 1.7;                                         // seconds for the 360° showcase turn
   const yaw = new Spring(0, 5, 4);                          // drag-to-rotate; drifts back to face you
@@ -312,19 +314,58 @@ export function createMascot(canvas, { still = false } = {}) {
     });
   }
 
+  // step 2: charging
+  function startCharge() {
+    phase = "charge";
+    chargeStart = t; chargeUntil = t + CHARGE;
+    s.squash.t = 0.84; s.open.t = 0.3; s.brow.t = -0.2;     // crouch, narrow eyes, determined brows
+    s.aura.t = 0.35; s.auraScale.v = 0.7; s.auraScale.t = 1;
+    emitFx("hear:charge");
+    sfx.riser(CHARGE / slow);
+    later(CHARGE * 1000, powerBurst);
+  }
+
+  function cup(side) {                                     // side: +1 right ear (S1), -1 left ear (S2)
+    cupSide = side;
+    ears.forEach(e => { const on = e.side === side; e.grow.t = on ? 1.6 : 1; if (on) e.grow.kick(3); e.perk.t = on ? 1.05 : 1; });
+    arms.forEach(a => { a.reach.t = a.side === side ? 0.82 : 0; });
+    s.lean.t = -side * 0.17; s.turn.t = -side * 0.38;
+    s.open.t = 0.42;
+  }
+  function uncup() {
+    cupSide = 0;
+    ears.forEach(e => { e.grow.t = 1; e.perk.t = 1; });
+    arms.forEach(a => { a.reach.t = 0; });
+    s.lean.t = 0; s.turn.t = 0; s.open.t = 1;
+  }
+
   const api = {
-    // anime power-up: charge, burst, then the ears grow
-    intro() {
+    // anime power-up without the meteor (reduced effects, or the meteor can't be drawn)
+    intro() { api.prepare(); startCharge(); },
+    // step 0: earless, it spots the meteor coming from the top-left corner and braces
+    prepare() {
       seq++;
-      listening = false; phase = "charge";
+      listening = false; phase = "incoming"; cupSide = 0;
       ears.forEach(e => { e.grow.v = e.grow.t = 0; e.grow.vel = 0; e.pivot.visible = false; e.hot = 0; });
-      arms.forEach(a => { a.reach.t = 0; }); gaze = null;
-      chargeStart = t; chargeUntil = t + CHARGE;
-      s.squash.t = 0.84; s.open.t = 0.3; s.brow.t = -0.2;     // step 1: crouch, narrow eyes, determined brows
-      s.aura.t = 0.35; s.auraScale.v = 0.7; s.auraScale.t = 1;
-      emitFx("hear:charge");
-      sfx.riser(CHARGE / slow);
-      later(CHARGE * 1000, powerBurst);
+      arms.forEach(a => { a.reach.t = 0; });
+      s.lean.t = 0; s.turn.t = 0; s.aura.t = 0;
+      gaze = { x: -0.85, y: 0.85 };
+      s.size.t = 1.25; sizeUntil = t + 30; ohUntil = t + 30; s.open.t = 1; s.squash.t = 0.92;
+    },
+    meteorSound(sec) { sfx.meteor(sec); },
+    blastSound() { sfx.blast(); },
+    crackSound() { sfx.crack(); },
+    // step 1: the meteor hits; the energy is in, the charge begins
+    impact() {
+      gaze = null; ohUntil = t; sizeUntil = t;
+      shake = 0.3; power.intensity = 45;
+      s.squash.t = 1; s.squash.kick(-6); s.hop.kick(1.2); s.tilt.kick(-6);
+      s.bodyGlow.v = 0.9; s.bodyGlow.t = 0;
+      burstSparks(-0.7, 0.55, 70, 6, COL.jade);
+      burstSparks(-0.7, 0.55, 35, 4.5, COL.white);
+      sfx.thud();
+      emitFx("hear:impact2");
+      later(450, startCharge);
     },
     // anticipation: crouch, then spring up with ears forward
     listen() {
@@ -334,31 +375,32 @@ export function createMascot(canvas, { still = false } = {}) {
       s.squash.kick(-3.2);
       later(130, () => {
         s.hop.kick(2.4); s.squash.kick(3);
-        ears.forEach(e => { e.perk.t = 1.15; e.perk.kick(2.2); });
-        s.open.t = 0.7;
-        arms.forEach(a => a.wave.kick(a.side * 6));
+        cup(1);                                        // "huh? say that again": cup the ear toward the first speaker
       });
     },
     word({ text = "", end = "", emo = "", spk = "S1" } = {}) {
       if (phase !== "idle") return;
       const e = ears[twitch++ % 2];
       e.rot.kick(e.side * -2.2);
-      if (/↑/.test(text)) { s.hop.kick(1.3); s.squash.kick(1.4); }
+      if (/↑/.test(text)) { s.brow.kick(2); s.squash.kick(1.1); }            // pitch jump: an eyebrow goes up
       if (end === "↗") s.tilt.kick(4);
-      if (end === "↘") s.nod.kick(3.2);
-      if (emo) {
+      if (end === "↘") s.nod.kick(2.6);
+      const side = spk === "S2" ? -1 : 1;
+      if (emo) {                                                             // startled: recoil, wide eyes, "huh?"
         sfx.huh();
-        s.size.t = 1.25; s.size.kick(4); sizeUntil = t + 1.4; ohUntil = t + 1.4; s.hop.kick(1.4);
-        arms.forEach(a => a.wave.kick(a.side * 8));
-      }
+        startledUntil = t + 1.5;
+        uncup(); s.lean.t = side * 0.12; s.open.t = 1;
+        s.size.t = 1.35; s.size.kick(5); sizeUntil = t + 1.4; ohUntil = t + 1.4; s.hop.kick(2);
+        arms.forEach(a => a.wave.kick(a.side * 12));
+        later(1500, () => { if (listening) cup(cupSide || side); });
+      } else if (t > startledUntil && side !== cupSide) cup(side);           // switch ears to whoever is talking now
       const c = spk === "S2" ? COL.jade : COL.ocean;
       ears.forEach(x => x.target.copy(c));
-      s.turn.t = spk === "S2" ? 0.28 : -0.1;
     },
     end() {
       listening = false;
-      ears.forEach(e => { e.perk.t = 1; e.target.copy(COL.ocean); });
-      s.open.t = 1; s.turn.t = 0;
+      uncup();
+      ears.forEach(e => { e.target.copy(COL.ocean); });
       later(200, () => { s.squash.kick(-2.4); later(110, () => { s.hop.kick(2.6); s.squash.kick(2.4); }); });
     },
     boop() {
@@ -371,7 +413,8 @@ export function createMascot(canvas, { still = false } = {}) {
       later(120, () => s.hop.kick(1.8));
     },
     // sound: off until the visitor turns it on (browsers block sound before a click)
-    setSound(v) { sfx.set(v); },
+    setSound(v) { return sfx.set(v); },
+    soundLevel() { return sfx.level(); },
     get soundOn() { return sfx.on; },
     get soundRunning() { return sfx.running; },
     hop() { s.squash.kick(-2); later(100, () => { s.hop.kick(1.8); s.squash.kick(2); }); },
@@ -430,7 +473,8 @@ export function createMascot(canvas, { still = false } = {}) {
     }
     head.rotation.y = s.lookX.v * 0.32 + s.turn.v + showYaw + yaw.v;
     head.rotation.x = -s.lookY.v * 0.16 + s.nod.v * 0.05;
-    head.rotation.z = s.tilt.v * 0.05 + Math.sin(t * 0.7) * 0.012;
+    head.rotation.z = s.tilt.v * 0.05 + s.lean.v + Math.sin(t * 0.7) * 0.012;
+    root.position.x += s.lean.v * -0.6;                       // lean the whole body toward the cupped ear
 
     eyes.forEach(({ g, side }) => {
       const sz = s.size.v;
@@ -448,7 +492,7 @@ export function createMascot(canvas, { still = false } = {}) {
     const smirk = !surprised && t < smirkUntil ? 1 : 0;
     mouth.rotation.z = Math.PI / 2 + smirk * 0.16;
     mouth.position.x = smirk * 0.04;
-    if (phase === "idle") s.brow.t = surprised ? 0.08 : listening ? 0.02 : -0.04;
+    if (phase === "idle" || phase === "incoming") s.brow.t = surprised ? 0.08 : listening ? -0.13 : -0.04;   // listening: suspicious squint
     brows.forEach(({ b, side }) => {
       b.position.y = 0.33 + s.brow.v * 0.9 + (s.size.v - 1) * 0.12;
       b.rotation.z = Math.PI / 2 - side * s.brow.v * 1.6;   // lifted: curious; lowered toward the middle: determined
