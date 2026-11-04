@@ -525,10 +525,14 @@ footer a:hover { color: var(--text); }
             </div>
 <pre data-os="unix"><span class="c"># 1. get the code   2. install + download models</span>
 <span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
-<span class="p">$ </span>~/.claude-hear/install.sh --warm</pre>
+<span class="p">$ </span>~/.claude-hear/install.sh --warm
+<span class="c"># or, with the skills CLI (needs ffmpeg and uv already):</span>
+<span class="p">$ </span>npx skills add kolinabir/claude-hear --skill hear -a claude-code -g</pre>
 <pre data-os="win" hidden><span class="c"># in PowerShell</span>
 <span class="p">&gt; </span>git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
-<span class="p">&gt; </span>powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm</pre>
+<span class="p">&gt; </span>powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm
+<span class="c"># or, with the skills CLI (needs ffmpeg and uv already):</span>
+<span class="p">&gt; </span>npx skills add kolinabir/claude-hear --skill hear -a claude-code -g</pre>
           </div>
           <ul class="asks" aria-label="Example requests">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span><b>Listen to ~/Downloads/interview.mp4.</b> Where does she sound unsure?</span></li>
@@ -544,7 +548,7 @@ footer a:hover { color: var(--text); }
             <li>Uninstall and delete models<code>~/.claude-hear/uninstall.sh --purge</code></li>
             <li>Words and delivery only, faster<code>--fast</code></li>
             <li>Strip loud music first (slow)<code>--separate</code></li>
-            <li>Force the language<code>--language en</code></li>
+            <li>Force the language<code>--language bn</code></li>
           </ul>
           <ul data-os="win" hidden>
             <li>Update<code>git -C $HOME\.claude-hear pull; .\install.ps1</code></li>
@@ -552,7 +556,7 @@ footer a:hover { color: var(--text); }
             <li>Uninstall and delete models<code>$HOME\.claude-hear\uninstall.ps1 -Purge</code></li>
             <li>Words and delivery only, faster<code>--fast</code></li>
             <li>Strip loud music first (slow)<code>--separate</code></li>
-            <li>Force the language<code>--language en</code></li>
+            <li>Force the language<code>--language bn</code></li>
           </ul>
         </div>
       </div>

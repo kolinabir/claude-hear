@@ -55,7 +55,7 @@ Step "Copying the skill into Claude Code"
 # copied, not linked: Windows symlinks need admin or Developer Mode
 if (Test-Path $SkillDir) { Remove-Item $SkillDir -Recurse -Force }
 New-Item -ItemType Directory -Force -Path (Split-Path $SkillDir) | Out-Null
-Copy-Item (Join-Path $Src "skill") $SkillDir -Recurse
+Copy-Item (Join-Path $Src "skills\hear") $SkillDir -Recurse
 Get-ChildItem $SkillDir -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
 Write-Host "$SkillDir (rerun this script after pulling updates)"
 

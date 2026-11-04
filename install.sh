@@ -54,7 +54,7 @@ echo "uv:     $(command -v uv)"
 
 say_step "Getting the code"
 here="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
-if [[ -n "$here" && -f "$here/skill/hear.py" ]]; then
+if [[ -n "$here" && -f "$here/skills/hear/hear.py" ]]; then
   SRC="$here"
   echo "Using this clone: $SRC"
 else
@@ -75,16 +75,16 @@ for f in SKILL.md hear.py; do
     mv "$target" "$target.bak"
     echo "Backed up your old $f to $f.bak"
   fi
-  ln -sfn "$SRC/skill/$f" "$target"
+  ln -sfn "$SRC/skills/hear/$f" "$target"
 done
-chmod +x "$SRC/skill/hear.py"
+chmod +x "$SRC/skills/hear/hear.py"
 echo "$SKILL_DIR → $SRC/skill"
 
 if (( WARM )); then
   say_step "Downloading models (~2.5 GB, a few minutes, once)"
   tmp="$(mktemp -d)"
   ffmpeg -v error -f lavfi -i "sine=frequency=220:duration=3" "$tmp/tone.wav"  # any audio triggers every download
-  uv run --script "$SRC/skill/hear.py" "$tmp/tone.wav" --out "$tmp/out"
+  uv run --script "$SRC/skills/hear/hear.py" "$tmp/tone.wav" --out "$tmp/out"
   rm -rf "$tmp"
 fi
 

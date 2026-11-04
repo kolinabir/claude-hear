@@ -32,7 +32,7 @@ You need [Claude Code](https://code.claude.com) and one of:
 
 | System | Whisper runs on | Speed (40 s clip) |
 |---|---|---|
-| **macOS, Apple Silicon** (M1–M4, macOS 14+) | the GPU via MLX | fastest: ~45 s for everything |
+| **macOS, Apple Silicon** (M1–M4, macOS 14+) | the GPU via MLX | fastest: ~15–20 s for everything |
 | **Windows 10/11** | an NVIDIA GPU if CUDA 12 + cuDNN 9 are installed, else the CPU | fast with a GPU; on the CPU, Whisper alone took 34 s on a fast 10-core CPU (more on laptops) |
 | **Linux** | same as Windows | same as Windows |
 | **macOS, Intel** | the CPU | like a CPU-only PC |
@@ -55,6 +55,12 @@ powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm
 ```
 
 `--warm` / `-Warm` downloads the models now (~2.5 GB, a few minutes). Without it, the first listen does it.
+
+**With the [skills](https://github.com/vercel-labs/skills) CLI** (copies the skill into `~/.claude/skills/hear`; you still need `ffmpeg` and `uv` on your PATH, and the first listen downloads the models):
+
+```bash
+npx skills add kolinabir/claude-hear --skill hear -a claude-code -g
+```
 
 If the repo is public, the same in one line:
 
@@ -88,10 +94,10 @@ uv run --script ~/.claude/skills/hear/hear.py clip.mp4 --out ./clip-hearing
 
 | Option | What it does | Time for a 40 s clip* |
 |---|---|---|
-| *(none)* | everything | ~45–50 s |
-| `--fast` | words + delivery only (no speakers, sounds, emotion) | ~30 s |
+| *(none)* | everything | ~15–20 s |
+| `--fast` | words + delivery only (no speakers, sounds, emotion) | ~10–15 s |
 | `--separate` | removes music before transcribing, for loud music over speech | +3–4 min |
-| `--language en` | forces the language when it's detected wrong | n/a |
+| `--language bn` | forces the language. The report says when Whisper is unsure; Bengali often comes out in Gujarati script until you force `bn` | n/a |
 
 \* Apple M4, models already downloaded. On Windows the command is the same, with `$HOME\.claude\skills\hear\hear.py`.
 
@@ -149,17 +155,19 @@ Whisper runs first on its own; the four light stages then run **together** in th
   but the PowerShell installer has not been run on a real Windows PC yet.
 - The marks are cues, not facts: "louder and higher" isn't proof of anger.
 - Emotion leans neutral and was trained mostly on acted speech.
-- Speaker labels are least reliable on very short lines and over loud music; a speaker marked
-  *brief* may be the main voice misheard.
+- Speaker labels are least reliable on very short lines and over loud music; a doubtful minor speaker is folded
+  back into the main voice, and one marked *brief* may still be the main voice misheard.
+- Whisper lines with no speech under them (its "Thank you." over music) or at impossible speed (token loops) are
+  dropped and counted in the header.
 - Sound labels are guesses: CED lists AudioSet labels with their probability (often low, 0.1–0.5), and CLAP's music share confuses speech-over-music with singing.
 - Pitch is only given for words with clear voicing (about half).
 
 ## Repo layout
 
 ```text
-skill/SKILL.md        instructions Claude reads
-skill/hear.py         runs the stages and writes the report
-skill/stages/*.py     one script per stage
+skills/hear/SKILL.md      instructions Claude reads
+skills/hear/hear.py       runs the stages and writes the report
+skills/hear/stages/*.py   one script per stage (plus clap_labels.npz and ced_groups.json, the label tables)
 install.sh  install.ps1  uninstall.sh  uninstall.ps1
 docs/                 home page (GitHub Pages)
 research/             how the models were chosen
