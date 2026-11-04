@@ -82,7 +82,6 @@
         {"@type": "Question", "name": "How much RAM and disk does hear need?", "acceptedAnswer": {"@type": "Answer", "text": "About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages."}},
         {"@type": "Question", "name": "What file types can hear listen to?", "acceptedAnswer": {"@type": "Answer", "text": "Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm."}},
         {"@type": "Question", "name": "How long does it take?", "acceptedAnswer": {"@type": "Answer", "text": "On an Apple M4, a 40-second clip takes about 45 to 50 seconds for the full report and about 30 seconds with --fast. Without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more."}},
-        {"@type": "Question", "name": "Is hear made by Anthropic?", "acceptedAnswer": {"@type": "Answer", "text": "No. hear is an independent, free skill that works with Claude Code. Claude and Claude Code are made by Anthropic; hear just gives Claude Code a way to listen to audio and video."}},
         {"@type": "Question", "name": "Can it tell who is speaking?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It labels each line S1, S2 and so on from a voice fingerprint and reports each speaker's share of the talking. Very short lines and lines over loud music are the least reliable, and the report flags those."}}
       ]
     }
@@ -345,7 +344,6 @@ details p { margin: -6px 0 22px; color: var(--text-2); max-width: 64ch; }
 
 footer { padding: 40px 0 56px; color: var(--text-3); font-size: 14px; }
 footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
-footer small { font-size: 12.5px; color: var(--text-3); }
 footer a:hover { color: var(--text); }
 
 /* reveal */
@@ -428,7 +426,7 @@ footer a:hover { color: var(--text); }
           <button class="key" id="listen" type="button" aria-label="Play the example and watch it listen">
             <span class="cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8.5a6 6 0 1 1 12 0c0 3.5-3 4.5-3 7.5a3.5 3.5 0 0 1-6.5 1.8"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.5 2-1.5 3.5"/></svg><b>listen</b></span>
           </button>
-          <span class="key-hint">Press it, or hit <kbd>L</kbd>,<br>and watch it hear the example.</span>
+          <span class="key-hint">Press it, or hit <kbd>L</kbd>, to play<br>the example with sound. 🔊</span>
         </div>
       </div>
       <div class="mascot-wrap">
@@ -656,7 +654,6 @@ footer a:hover { color: var(--text); }
         <details><summary>How much RAM and disk does hear need?</summary><p>About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages.</p></details>
         <details><summary>What file types can hear listen to?</summary><p>Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm.</p></details>
         <details><summary>How long does it take?</summary><p>On an Apple M4, a 40-second clip takes about 45 to 50 seconds for the full report and about 30 seconds with <code>--fast</code>. Without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more.</p></details>
-        <details><summary>Is hear made by Anthropic?</summary><p>No. hear is an independent, free skill that works with Claude Code. Claude and Claude Code are made by Anthropic; hear just gives Claude Code a way to listen to audio and video.</p></details>
         <details><summary>Can it tell who is speaking?</summary><p>Yes. It labels each line S1, S2 and so on from a voice fingerprint and reports each speaker's share of the talking. Very short lines and lines over loud music are the least reliable, and the report flags those.</p></details>
       </div>
     </div>
@@ -677,7 +674,7 @@ footer a:hover { color: var(--text); }
 <footer>
   <div class="wrap">
     <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>hear</a>
-    <span>A Claude Code skill by kolinabir · <a href="https://github.com/kolinabir/claude-hear">GitHub</a> · <a href="llms.txt">llms.txt</a><br><small>Independent project, not made by Anthropic. Claude is a trademark of Anthropic.</small></span>
+    <span>A Claude Code skill by kolinabir · <a href="https://github.com/kolinabir/claude-hear">GitHub</a> · <a href="llms.txt">llms.txt</a></span>
   </div>
 </footer>
 
@@ -785,34 +782,47 @@ function announce(t) {
     capTimer = setTimeout(() => caption.classList.remove("on"), 1800);
   }
 }
-let raf, start, from = 0;
+// the real clip: plays with sound after a click or key press (browsers block sound before that)
+const audio = new Audio("two-voices.mp3");
+audio.preload = "auto";
+let raf, start, from = 0, withSound = false;
 const frame = now => {
   if (start == null) start = now - from * 1000;
-  const t = Math.min((now - start) / 1000, DATA.dur);
-  render(t);
-  if (t < DATA.dur) raf = requestAnimationFrame(frame);
+  const t = withSound ? Math.min(audio.currentTime, DATA.dur) : Math.min((now - start) / 1000, DATA.dur);
+  const done = withSound ? audio.ended : t >= DATA.dur;
+  render(done ? DATA.dur : t);
+  if (!done) raf = requestAnimationFrame(frame);
 };
-const play = (at = 0) => {
+const play = (at = 0, sound = false) => {
   cancelAnimationFrame(raf); from = at; start = null;
   heardCount = DATA.words.filter(w => w[2] < at).length; ended = false;
+  audio.pause();
+  withSound = sound;
+  if (sound) {
+    audio.currentTime = at;
+    audio.play().catch(() => { withSound = false; start = null; });  // no sound allowed: fall back to the clock
+  }
   dispatchEvent(new Event("hear:play"));
   raf = requestAnimationFrame(frame);
 };
-$("play").onclick = () => play(0);
+$("play").onclick = () => play(0, true);
 
-// the listen key, plus L on the keyboard
+// the listen key, plus L on the keyboard: both play with sound
 const keyBtn = $("listen");
-const pressKey = () => { keyBtn.classList.add("down"); setTimeout(() => keyBtn.classList.remove("down"), 160); play(0); };
+const pressKey = () => { keyBtn.classList.add("down"); setTimeout(() => keyBtn.classList.remove("down"), 160); play(0, true); };
 keyBtn.onclick = pressKey;
 addEventListener("keydown", e => {
-  if (e.key.toLowerCase() === "l" && !e.metaKey && !e.ctrlKey && !e.altKey && !/input|textarea/i.test(e.target.tagName)) pressKey();
+  if (e.key.toLowerCase() === "l" && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey && !/input|textarea/i.test(e.target.tagName)) pressKey();
 });
-wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * DATA.dur); };
+wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * DATA.dur, true); };
 if (reduce) render(DATA.dur);
 else {
   render(0);
-  // first listen happens up top with the mascot; the demo replays when scrolled to, unless it's mid-play
-  setTimeout(() => play(0), 1200);
+  // first, silent listen happens up top once the mascot has its ears on; then the demo replays when scrolled to
+  let autoplayed = false;
+  const autoplay = () => { if (!autoplayed) { autoplayed = true; play(0); } };
+  addEventListener("hear:ready", () => setTimeout(autoplay, 350), { once: true });
+  setTimeout(autoplay, 4500);  // in case the 3D mascot can't load
   new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { setTimeout(() => { if (ended) play(0); }, 400); o.disconnect(); } }, { threshold: .4 }).observe(wave);
 }
 
@@ -852,6 +862,9 @@ const wrap = document.querySelector(".mascot-wrap"), canvas = document.getElemen
 try {
   const m = createMascot(canvas);
   requestAnimationFrame(() => wrap.classList.add("live"));
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) dispatchEvent(new Event("hear:ready"));
+  else m.intro();                                  // the ears attach
+  canvas.addEventListener("dblclick", () => m.intro());
   addEventListener("hear:play", () => m.listen());
   addEventListener("hear:word", e => m.word(e.detail));
   addEventListener("hear:end", () => m.end());

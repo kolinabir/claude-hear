@@ -87,7 +87,12 @@ export function createMascot(canvas, { still = false } = {}) {
     const base = -side * 0.3;
     pivot.rotation.z = base;
     head.add(pivot);
-    return { side, pivot, innerMat, base, rot: new Spring(base, 170, 8), perk: new Spring(1, 170, 9), color: COL.ocean.clone(), target: COL.ocean.clone() };
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.028, 8, 48),
+      new THREE.MeshBasicMaterial({ color: COL.jade, transparent: true, opacity: 0, depthWrite: false }));
+    ring.position.set(pivot.position.x, pivot.position.y + 0.05, 0.3);
+    head.add(ring);
+    return { side, pivot, innerMat, base, rot: new Spring(base, 170, 8), perk: new Spring(1, 170, 9), color: COL.ocean.clone(), target: COL.ocean.clone(),
+      baseY: pivot.position.y, drop: new Spring(0, 55, 6.5), spin: new Spring(0, 60, 7), landed: true, landT: -9, ring };
   });
 
   // face: tall dark eyes, brows, a small mouth
@@ -138,7 +143,7 @@ export function createMascot(canvas, { still = false } = {}) {
     tilt: new Spring(0, 90, 9), nod: new Spring(0, 110, 10), turn: new Spring(0, 45, 10),
     open: new Spring(1, 320, 24), size: new Spring(1, 140, 8), brow: new Spring(0, 160, 10),
   };
-  let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
+  let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0, lookUpUntil = 0, landed = 0;
   const later = (ms, fn) => setTimeout(fn, ms);
 
   addEventListener("pointermove", e => {
@@ -147,7 +152,26 @@ export function createMascot(canvas, { still = false } = {}) {
     s.lookY.t = Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height * 0.45)) / (innerHeight / 2)));
   }, { passive: true });
 
+  const dropEar = e => { e.drop.t = 0; e.drop.vel = -3.5; e.spin.t = 0; };
+  function onLand(e) {
+    s.squash.kick(-3.4); s.hop.kick(0.7); e.perk.kick(4.5);
+    blinkEnd = t + 0.12;
+    if (++landed === 2) later(260, () => {
+      s.squash.kick(-2.2);
+      later(110, () => { s.hop.kick(3); s.squash.kick(2.8); arms.forEach(a => a.wave.kick(a.side * 10)); });
+      later(700, () => dispatchEvent(new Event("hear:ready")));
+    });
+  }
+
   const api = {
+    // ears come off, then fall in and attach one by one
+    intro() {
+      landed = 0;
+      ears.forEach(e => { e.drop.v = e.drop.t = 4.4; e.drop.vel = 0; e.spin.v = e.spin.t = e.side * 3.2; e.landed = false; });
+      lookUpUntil = t + 2.3;                               // staging: it looks up, waiting for them
+      later(500, () => dropEar(ears[0]));
+      later(1050, () => dropEar(ears[1]));
+    },
     // anticipation: crouch, then spring up with ears perked
     listen() {
       listening = true;
@@ -192,8 +216,9 @@ export function createMascot(canvas, { still = false } = {}) {
   function update(dt) {
     t += dt;
     for (const k in s) s[k].step(dt);
-    ears.forEach(e => { e.rot.step(dt); e.perk.step(dt); });
+    ears.forEach(e => { e.rot.step(dt); e.perk.step(dt); e.drop.step(dt); e.spin.step(dt); });
     arms.forEach(a => a.wave.step(dt));
+    if (t < lookUpUntil) { s.lookY.t = 0.95; s.lookX.t = 0; }
 
     if (t > blinkAt) { blinkEnd = t + 0.11; blinkAt = t + 2.4 + Math.random() * 3.2; }
     if (t > sizeUntil) s.size.t = 1;
@@ -230,12 +255,18 @@ export function createMascot(canvas, { still = false } = {}) {
 
     ears.forEach((e, i) => {
       const sway = Math.sin(t * 2.1 + i * 1.7) * (listening ? 0.03 : 0.05);  // secondary action
-      e.pivot.rotation.z = e.rot.v + sway;
+      e.pivot.rotation.z = e.rot.v + sway + e.spin.v;
+      e.pivot.position.y = e.baseY + e.drop.v;
+      e.pivot.visible = e.drop.v < 4;
+      if (!e.landed && e.drop.v < 0.04 && e.drop.vel < 0) { e.landed = true; e.landT = t; onLand(e); }
+      const rt = t - e.landT;
+      e.ring.material.opacity = rt < 0.5 ? (1 - rt / 0.5) * 0.9 : 0;
+      e.ring.scale.setScalar(0.4 + Math.min(rt, 0.5) * 2.8);
       e.pivot.scale.set(1, e.perk.v, 1);
       e.color.lerp(e.target, Math.min(1, dt * 6));
       e.innerMat.color.copy(e.color).multiplyScalar(0.55);   // darker base keeps the hue after tone mapping
       e.innerMat.emissive.copy(e.color);
-      e.innerMat.emissiveIntensity = listening ? 0.5 : 0.25;
+      e.innerMat.emissiveIntensity = (listening ? 0.5 : 0.25) + (rt < 0.7 ? (1 - rt / 0.7) * 1.6 : 0);  // glow flashes on attach
     });
 
     const lift = Math.max(0, y);
