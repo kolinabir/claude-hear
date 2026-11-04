@@ -1,7 +1,7 @@
 // The hear mascot: the boxy Claude Code critter in 3D, built entirely in code (three.js).
-// On load it powers up, anime style: it charges, two beams summon its ears, they slam on,
-// and it bursts into a jade aura. Motion follows the classic animation principles: springs give
-// anticipation, follow-through and squash-and-stretch that keeps its volume.
+// On load it powers up, anime style: it charges, bursts into a jade aura, and then grows its ears.
+// Motion follows the classic animation principles: springs give anticipation, follow-through
+// and squash-and-stretch that keeps its volume.
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -38,7 +38,7 @@ function dotTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-// pooled additive particles: fade by darkening their colour as they age
+// pooled glowing particles: fade by darkening their colour as they age
 class Particles {
   constructor(max, size, tex) {
     this.max = max; this.n = 0;
@@ -88,10 +88,10 @@ export function createMascot(canvas, { still = false } = {}) {
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   pmrem.dispose();
 
-  const CAM = new THREE.Vector3(0, 0.5, 9.4);
+  const CAM = new THREE.Vector3(0, 0.35, 9.2);
   const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 50);
   camera.position.copy(CAM);
-  camera.lookAt(0, 0.25, 0);
+  camera.lookAt(0, 0.05, 0);
 
   const key = new THREE.DirectionalLight(0xffffff, 1.7); key.position.set(2.5, 4, 5);
   const rim = new THREE.DirectionalLight(0x00d3fb, 2.4); rim.position.set(-4, 2.5, -3);
@@ -102,8 +102,8 @@ export function createMascot(canvas, { still = false } = {}) {
   const lowPoly = window.innerWidth < 640;
   const seg = lowPoly ? 32 : 56, rseg = lowPoly ? 4 : 7;
   const sphere = new THREE.SphereGeometry(1, seg, seg);
-  const clay = new THREE.MeshPhysicalMaterial({ color: COL.clay, roughness: 0.5, clearcoat: 0.3, clearcoatRoughness: 0.3, envMapIntensity: 0.45, emissive: COL.jade.clone(), emissiveIntensity: 0 });
-  const ink = new THREE.MeshPhysicalMaterial({ color: COL.ink, roughness: 0.12, clearcoat: 1 });
+  const clay = new THREE.MeshPhysicalMaterial({ color: COL.clay, roughness: 0.55, clearcoat: 0.2, clearcoatRoughness: 0.4, envMapIntensity: 0.4, emissive: COL.jade.clone(), emissiveIntensity: 0 });
+  const ink = new THREE.MeshStandardMaterial({ color: COL.ink, roughness: 0.4 });
   const eyeInk = ink.clone(); eyeInk.emissive = COL.jade.clone(); eyeInk.emissiveIntensity = 0;
   const glow = c => lightBlend(new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, depthWrite: false }));
 
@@ -112,92 +112,72 @@ export function createMascot(canvas, { still = false } = {}) {
   root.add(head);
   scene.add(root);
 
-  // body: one soft block
-  const body = new THREE.Mesh(new RoundedBoxGeometry(2.1, 1.55, 1.35, rseg, 0.34), clay);
+  // body: one solid block
+  const body = new THREE.Mesh(new RoundedBoxGeometry(2.1, 1.55, 1.35, rseg, 0.26), clay);
   head.add(body);
 
-  // stubby arms and legs
+  // stubby arms (low on the sides, leaving room for the ears) and legs
   const arms = [-1, 1].map(side => {
     const pivot = new THREE.Group();
-    pivot.position.set(side * 1.05, -0.05, 0);
-    const arm = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.36, 0.42, rseg, 0.13), clay);
+    pivot.position.set(side * 1.05, -0.3, 0);
+    const arm = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.34, 0.42, rseg, 0.1), clay);
     arm.position.x = side * 0.17;
     pivot.add(arm);
     head.add(pivot);
-    return { pivot, side, wave: new Spring(0, 120, 7) };
+    return { pivot, arm, side, wave: new Spring(0, 120, 7), reach: new Spring(0, 95, 10) };
   });
-  const legGeo = new RoundedBoxGeometry(0.26, 0.34, 0.3, rseg, 0.1);
+  const legGeo = new RoundedBoxGeometry(0.28, 0.34, 0.32, rseg, 0.08);
   [-0.62, -0.22, 0.22, 0.62].forEach(x => {
     const leg = new THREE.Mesh(legGeo, clay);
     leg.position.set(x, -0.86, 0.12);
     head.add(leg);
   });
 
-  // ears. Inner glow takes the colour of whoever is talking; the outer shell glows white-hot while summoned.
-  const beamGeo = new THREE.CylinderGeometry(0.1, 0.2, 3.4, 20, 1, true); beamGeo.translate(0, 1.7, 0);
-  const coreGeo = new THREE.CylinderGeometry(0.035, 0.06, 3.4, 12, 1, true); coreGeo.translate(0, 1.7, 0);
+  // ears: short, human-style, on the sides of the head. Inner glow takes the colour of whoever is talking.
   const ears = [-1, 1].map(side => {
     const pivot = new THREE.Group();
-    pivot.position.set(side * 0.58, 0.66, -0.05);
+    pivot.position.set(side * 1.04, 0.24, 0.02);
+    pivot.rotation.y = -side * 0.62;                   // turned toward the viewer so the glow shows
     const shell = clay.clone(); shell.emissive = COL.white.clone(); shell.emissiveIntensity = 0;
     const outer = new THREE.Mesh(sphere, shell);
-    outer.scale.set(0.27, 0.5, 0.16);
-    outer.position.y = 0.42;
-    const innerMat = new THREE.MeshStandardMaterial({ color: COL.ocean, emissive: COL.ocean.clone(), emissiveIntensity: 0.25, roughness: 0.35 });
+    outer.scale.set(0.11, 0.36, 0.26);
+    outer.position.x = side * 0.06;
+    const innerMat = new THREE.MeshStandardMaterial({ color: COL.ocean, emissive: COL.ocean.clone(), emissiveIntensity: 0.3, roughness: 0.35 });
     const inner = new THREE.Mesh(sphere, innerMat);
-    inner.scale.set(0.16, 0.35, 0.07);
-    inner.position.set(0, 0.45, 0.11);
+    inner.scale.set(0.045, 0.24, 0.16);
+    inner.position.set(side * 0.14, 0, 0.01);
     pivot.add(outer, inner);
-    const base = -side * 0.3;
-    pivot.rotation.z = base;
     head.add(pivot);
-    // summoning beam rising from where the ear will attach
-    const beam = new THREE.Mesh(beamGeo, glow(COL.jade)), core = new THREE.Mesh(coreGeo, glow(COL.white));
-    beam.position.set(pivot.position.x, pivot.position.y, -0.05); core.position.copy(beam.position);
-    beam.rotation.z = core.rotation.z = base * 0.6;
-    head.add(beam, core);
-    // shockwave on impact
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.03, 8, 56), glow(COL.jade));
-    ring.position.set(pivot.position.x, pivot.position.y + 0.05, 0.3);
+    ring.position.set(side * 1.12, 0.26, 0.2);
     head.add(ring);
-    return { side, pivot, shell, innerMat, base, beam, core, ring, beamOn: 0,
-      rot: new Spring(base, 170, 8), perk: new Spring(1, 170, 9), color: COL.ocean.clone(), target: COL.ocean.clone(),
-      baseY: pivot.position.y, drop: new Spring(0, 260, 13), spin: new Spring(0, 60, 7), landed: true, landT: -9, hot: 0 };
+    return { side, pivot, shell, innerMat, ring, grow: new Spring(1, 130, 8), rot: new Spring(0, 170, 8), perk: new Spring(1, 170, 9),
+      color: COL.ocean.clone(), target: COL.ocean.clone(), landT: -9, hot: 0, touchT: -9 };
   });
 
-  // face: tall dark eyes, brows, a small mouth
+  // face: plain dark eyes, heavy brows, a firm mouth
   const faceZ = 0.68;
-  const eyeGeo = new RoundedBoxGeometry(0.2, 0.38, 0.08, rseg, 0.08);
-  const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const eyeGeo = new RoundedBoxGeometry(0.18, 0.3, 0.07, rseg, 0.05);
   const eyes = [-1, 1].map(side => {
     const g = new THREE.Group();
-    g.position.set(side * 0.42, 0.1, faceZ);
-    const eye = new THREE.Mesh(eyeGeo, eyeInk);
-    const glint = new THREE.Mesh(sphere, glintMat);
-    glint.scale.set(0.035, 0.05, 0.02);
-    glint.position.set(0.04, 0.1, 0.045);
-    g.add(eye, glint);
+    g.position.set(side * 0.4, 0.06, faceZ);
+    g.add(new THREE.Mesh(eyeGeo, eyeInk));
     head.add(g);
     return { g, side };
   });
   const brows = [-1, 1].map(side => {
-    const b = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.2, 4, 10), ink);
-    b.rotation.z = Math.PI / 2 - side * 0.1;
-    b.position.set(side * 0.44, 0.42, faceZ);
+    const b = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.24, 4, 10), ink);
+    b.position.set(side * 0.41, 0.33, faceZ);
     head.add(b);
     return { b, side };
   });
-  const mouth = new THREE.Mesh(new THREE.CapsuleGeometry(0.022, 0.07, 4, 8), ink);
+  const mouth = new THREE.Mesh(new THREE.CapsuleGeometry(0.026, 0.17, 4, 8), ink);
   mouth.rotation.z = Math.PI / 2;
-  mouth.position.set(0, -0.2, faceZ);
-  const oh = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.022, 10, 28), ink);
-  oh.position.set(0, -0.22, faceZ);
+  mouth.position.set(0, -0.24, faceZ);
+  const oh = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.11, 0.05, 3, 0.03), ink);   // surprised: a small open mouth
+  oh.position.set(0, -0.25, faceZ);
   oh.visible = false;
-  const grin = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.022, 10, 32, Math.PI), ink);   // confident smile after powering up
-  grin.rotation.z = Math.PI;
-  grin.position.set(0, -0.14, faceZ);
-  grin.visible = false;
-  head.add(mouth, oh, grin);
+  head.add(mouth, oh);
 
   // soft contact shadow
   const sc = document.createElement("canvas"); sc.width = sc.height = 128;
@@ -228,14 +208,14 @@ export function createMascot(canvas, { still = false } = {}) {
     lookX: new Spring(0, 40, 9), lookY: new Spring(0, 40, 9),
     hop: new Spring(0, 70, 7), squash: new Spring(1, 180, 9),
     tilt: new Spring(0, 90, 9), nod: new Spring(0, 110, 10), turn: new Spring(0, 45, 10),
-    open: new Spring(1, 320, 24), size: new Spring(1, 140, 8), brow: new Spring(0, 160, 10),
+    open: new Spring(1, 320, 24), size: new Spring(1, 140, 8), brow: new Spring(-0.04, 160, 10),
     aura: new Spring(0, 30, 9), auraScale: new Spring(1, 60, 7), bodyGlow: new Spring(0, 40, 9), eyeGlow: new Spring(0, 30, 9),
   };
-  let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0, landed = 0;
-  let phase = "idle", chargeUntil = 0, lookUpUntil = 0, flameUntil = 0, grinUntil = 0, shake = 0, seq = 0;
-  const slow = /[?&]slowmo/.test(location.search) ? 0.25 : 1;
+  let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
+  let phase = "idle", chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
+  const slow = /[?&]slowmo/.test(location.search) ? 0.25 : 1;   // ?slowmo: quarter speed, for checking the choreography
   const later = (ms, fn) => { const id = seq; setTimeout(() => { if (id === seq) fn(); }, ms / slow); };
-  const emitFx = (name) => dispatchEvent(new Event(name));
+  const emitFx = name => dispatchEvent(new Event(name));
 
   addEventListener("pointermove", e => {
     const r = canvas.getBoundingClientRect();
@@ -250,42 +230,62 @@ export function createMascot(canvas, { still = false } = {}) {
     }
   }
 
-  // an ear slams down its beam and locks on
-  const slam = e => { e.drop.t = 0; e.drop.vel = -14; e.spin.t = 0; };
-  function onLand(e) {
-    const second = landed === 1;
-    s.squash.kick(second ? -5.2 : -4); s.hop.kick(0.6); e.perk.kick(6);
-    blinkEnd = t + 0.1;
-    e.beamOn = -1;                                   // beam fades out
-    shake = Math.max(shake, second ? 0.16 : 0.1);
-    const wx = e.pivot.position.x, wy = e.pivot.position.y + root.position.y;
-    burstSparks(wx, wy, second ? 46 : 32, second ? 5 : 4, COL.jade);
-    burstSparks(wx, wy, 14, 3, COL.white);
-    emitFx(second ? "hear:impact2" : "hear:impact");
-    if (++landed === 2) later(240, powerBurst);
-  }
-
-  // the big moment: aura explodes, eyes flash, everything glows
+  // step 2: the burst. Aura explodes, eyes ignite, everything glows.
   function powerBurst() {
     phase = "burst";
     s.squash.t = 1; s.squash.kick(-3);
-    s.brow.t = 0;
     later(90, () => {
       s.hop.kick(4); s.squash.kick(4.5);
       arms.forEach(a => a.wave.kick(a.side * 16));
-      s.size.t = 1.25; s.size.kick(4); sizeUntil = t + 0.9;
+      s.size.t = 1.2; s.size.kick(4); sizeUntil = t + 0.8;
       s.open.t = 1;
     });
-    s.bodyGlow.v = 1.1; s.eyeGlow.v = 2.4; s.eyeGlow.t = 0;
+    s.bodyGlow.v = 1.1; s.eyeGlow.v = 2.6; s.eyeGlow.t = 0;
     s.aura.t = 1; s.auraScale.v = 0.6; s.auraScale.t = 1.7; s.auraScale.kick(4);
-    flameUntil = t + 1.2;
-    grinUntil = t + 3;
+    flameUntil = t + 1.6;
     shake = 0.22;
     power.intensity = 60;
-    burstSparks(0, 0.2, 90, 6.5, COL.jade);
-    burstSparks(0, 0.2, 40, 5, COL.white);
+    burstSparks(0, 0.1, 90, 6.5, COL.jade);
+    burstSparks(0, 0.1, 40, 5, COL.white);
     emitFx("hear:burst");
-    later(1050, () => {
+    later(550, () => ears.forEach((e, i) => later(i * 140, () => growEar(e, i === 1))));
+  }
+
+  // step 3: the ears grow out of the head in two pulses of energy
+  function growEar(e, last) {
+    e.pivot.visible = true; e.hot = 1; e.landT = t;
+    e.grow.t = 0.5; e.grow.kick(5);                                          // pulse 1: sprout
+    burstSparks(e.side * 1.1, 0.26 + root.position.y, 16, 2.5, COL.white);
+    later(300, () => {                                                       // pulse 2: full size, with a shockwave
+      e.grow.t = 1; e.grow.kick(9); e.landT = t;
+      s.squash.kick(-2.6); e.rot.kick(-e.side * 3);
+      shake = Math.max(shake, last ? 0.14 : 0.09);
+      burstSparks(e.side * 1.15, 0.26 + root.position.y, last ? 40 : 28, 4.5, COL.jade);
+      emitFx(last ? "hear:impact2" : "hear:impact");
+      if (last) later(450, explore);
+    });
+  }
+
+  // step 4: it notices its new ears and explores them: look, reach, touch, pat
+  function touchEar(e) {
+    e.rot.kick(e.side * 3.2); e.perk.kick(3.2); e.touchT = t;
+    s.squash.kick(-0.9);
+    burstSparks(e.side * 1.12, 0.24 + root.position.y, 8, 1.8, COL.white);
+  }
+  function exploreEar(i, at) {
+    const e = ears[i], a = arms[i];
+    later(at, () => { gaze = { x: e.side * 0.85, y: 0.15 }; s.brow.t = 0.08; a.reach.t = 1; });
+    later(at + 430, () => { touchEar(e); ohUntil = t + 0.55; });
+    later(at + 680, () => { a.reach.kick(-4); later(90, () => touchEar(e)); });
+    later(at + 950, () => { a.reach.kick(-4); later(90, () => touchEar(e)); });
+    later(at + 1250, () => { a.reach.t = 0; });
+  }
+  function explore() {
+    phase = "explore";
+    exploreEar(1, 0);                                  // right ear first
+    exploreEar(0, 1350);                               // then the left
+    later(2700, () => { gaze = null; s.nod.kick(3); s.brow.t = -0.06; smirkUntil = t + 3; });
+    later(3200, () => {
       phase = "idle";
       s.aura.t = 0.16; s.auraScale.t = 1;            // a soft shimmer stays
       emitFx("hear:ready");
@@ -293,36 +293,27 @@ export function createMascot(canvas, { still = false } = {}) {
   }
 
   const api = {
-    // anime power-up: charge, summon ears, slam them on, burst
+    // anime power-up: charge, burst, then the ears grow
     intro() {
       seq++;
-      landed = 0; listening = false; phase = "charge";
-      ears.forEach(e => {
-        e.drop.v = e.drop.t = 1.5; e.drop.vel = 0;
-        e.spin.v = e.spin.t = e.side * 2.6;
-        e.landed = false; e.beamOn = 0; e.hot = 1;
-        e.pivot.visible = false;
-      });
-      chargeUntil = t + 1.5;
-      s.squash.t = 0.84; s.open.t = 0.32; s.brow.t = -0.22;   // crouch, narrow eyes, determined brows
+      listening = false; phase = "charge";
+      ears.forEach(e => { e.grow.v = e.grow.t = 0; e.grow.vel = 0; e.pivot.visible = false; e.hot = 0; });
+      arms.forEach(a => { a.reach.t = 0; }); gaze = null;
+      chargeUntil = t + 1.4;
+      s.squash.t = 0.84; s.open.t = 0.3; s.brow.t = -0.2;     // step 1: crouch, narrow eyes, determined brows
       s.aura.t = 0.75; s.auraScale.v = 0.7; s.auraScale.t = 1;
       emitFx("hear:charge");
-      later(800, () => {                               // summon: beams shoot up, ears form at the top
-        lookUpUntil = t + 1.1;
-        ears.forEach((e, i) => later(i * 120, () => { e.beamOn = 1; e.pivot.visible = true; burstSparks(e.pivot.position.x, e.baseY + 1.9, 18, 2.5, COL.white); }));
-      });
-      later(1500, () => { s.squash.t = 1; slam(ears[0]); });
-      later(1780, () => slam(ears[1]));
+      later(1400, powerBurst);
     },
-    // anticipation: crouch, then spring up with ears perked
+    // anticipation: crouch, then spring up with ears forward
     listen() {
       if (phase !== "idle") return;
       listening = true;
       s.squash.kick(-3.2);
       later(130, () => {
         s.hop.kick(2.4); s.squash.kick(3);
-        ears.forEach(e => { e.rot.t = e.base * 0.3; e.perk.t = 1.16; e.perk.kick(2.2); });
-        s.open.t = 0.62;
+        ears.forEach(e => { e.perk.t = 1.15; e.perk.kick(2.2); });
+        s.open.t = 0.7;
         arms.forEach(a => a.wave.kick(a.side * 6));
       });
     },
@@ -334,8 +325,8 @@ export function createMascot(canvas, { still = false } = {}) {
       if (end === "↗") s.tilt.kick(4);
       if (end === "↘") s.nod.kick(3.2);
       if (emo) {
-        s.size.t = 1.35; s.size.kick(5); sizeUntil = t + 1.5; ohUntil = t + 1.5; s.hop.kick(1.6);
-        arms.forEach(a => a.wave.kick(a.side * 9));
+        s.size.t = 1.25; s.size.kick(4); sizeUntil = t + 1.4; ohUntil = t + 1.4; s.hop.kick(1.4);
+        arms.forEach(a => a.wave.kick(a.side * 8));
       }
       const c = spk === "S2" ? COL.jade : COL.ocean;
       ears.forEach(x => x.target.copy(c));
@@ -343,9 +334,9 @@ export function createMascot(canvas, { still = false } = {}) {
     },
     end() {
       listening = false;
-      ears.forEach(e => { e.rot.t = e.base; e.perk.t = 1; e.target.copy(COL.ocean); });
+      ears.forEach(e => { e.perk.t = 1; e.target.copy(COL.ocean); });
       s.open.t = 1; s.turn.t = 0;
-      later(200, () => { s.squash.kick(-2.4); later(110, () => { s.hop.kick(2.8); s.squash.kick(2.6); arms.forEach(a => a.wave.kick(a.side * 10)); }); });
+      later(200, () => { s.squash.kick(-2.4); later(110, () => { s.hop.kick(2.6); s.squash.kick(2.4); }); });
     },
     boop() {
       s.squash.kick(-4);
@@ -360,9 +351,9 @@ export function createMascot(canvas, { still = false } = {}) {
   function update(dt) {
     t += dt;
     for (const k in s) s[k].step(dt);
-    ears.forEach(e => { e.rot.step(dt); e.perk.step(dt); e.drop.step(dt); e.spin.step(dt); });
-    arms.forEach(a => a.wave.step(dt));
-    if (t < lookUpUntil) { s.lookY.t = 0.9; s.lookX.t = 0; }
+    ears.forEach(e => { e.rot.step(dt); e.perk.step(dt); e.grow.step(dt); });
+    arms.forEach(a => { a.wave.step(dt); a.reach.step(dt); });
+    if (gaze) { s.lookX.t = gaze.x; s.lookY.t = gaze.y; }
 
     // charging: energy streams in, the body trembles
     const charging = t < chargeUntil;
@@ -374,7 +365,7 @@ export function createMascot(canvas, { still = false } = {}) {
         sparks.emit(x, y, (Math.random() - 0.5) * 1.2, -x * 1.6, -y * 1.6, 0, 0.55, Math.random() < 0.25 ? COL.white : COL.jade, 0, 2.5);
       }
     }
-    // aura flames rise during the burst
+    // aura flames rise from the burst until the ears are on
     if (t < flameUntil) {
       const rate = lowPoly ? 5 : 12;
       for (let i = 0; i < rate; i++) {
@@ -392,60 +383,57 @@ export function createMascot(canvas, { still = false } = {}) {
     const sy = Math.max(0.7, s.squash.v) * breathe;
     const sx = 1 / Math.sqrt(sy);                       // keep the volume
     root.scale.set(sx, sy, sx);
-    const y = Math.max(-0.05, s.hop.v * 0.18) + Math.sin(t * 1.1) * 0.03;
+    const y = Math.max(-0.05, s.hop.v * 0.18) + Math.sin(t * 1.1) * 0.025;
     root.position.y = y;
     root.position.x = charging ? (Math.random() - 0.5) * 0.045 : 0;   // trembling with power
 
     head.rotation.y = s.lookX.v * 0.32 + s.turn.v;
     head.rotation.x = -s.lookY.v * 0.16 + s.nod.v * 0.05;
-    head.rotation.z = s.tilt.v * 0.05 + Math.sin(t * 0.7) * 0.015;
+    head.rotation.z = s.tilt.v * 0.05 + Math.sin(t * 0.7) * 0.012;
 
     eyes.forEach(({ g, side }) => {
       const sz = s.size.v;
       g.scale.set(sz, sz * Math.max(0.06, s.open.v * blink), 1);
-      g.position.x = side * 0.42 + s.lookX.v * 0.06;     // eyes slide toward what they look at
-      g.position.y = 0.1 + s.lookY.v * 0.05;
+      g.position.x = side * 0.4 + s.lookX.v * 0.06;     // eyes slide toward what they look at
+      g.position.y = 0.06 + s.lookY.v * 0.05;
     });
     eyeInk.emissiveIntensity = Math.max(0, s.eyeGlow.v);
     clay.emissiveIntensity = Math.max(0, s.bodyGlow.v) * 0.9;
     power.intensity *= Math.exp(-dt * 4);
 
+    // mouth: firm line; a small open mouth when surprised; a one-sided smirk after powering up
     const surprised = t < ohUntil;
-    const confident = !surprised && t < grinUntil;
-    mouth.visible = !surprised && !confident; oh.visible = surprised; grin.visible = confident;
-    if (phase === "idle") s.brow.t = surprised ? 0.09 : listening ? 0.04 : 0;
+    mouth.visible = !surprised; oh.visible = surprised;
+    const smirk = !surprised && t < smirkUntil ? 1 : 0;
+    mouth.rotation.z = Math.PI / 2 + smirk * 0.16;
+    mouth.position.x = smirk * 0.04;
+    if (phase === "idle") s.brow.t = surprised ? 0.08 : listening ? 0.02 : -0.04;
     brows.forEach(({ b, side }) => {
-      b.position.y = 0.42 + s.brow.v + (s.size.v - 1) * 0.16;
-      b.rotation.z = Math.PI / 2 - side * (0.1 + s.brow.v * 1.6);   // lifted: curious; lowered: determined
+      b.position.y = 0.33 + s.brow.v * 0.9 + (s.size.v - 1) * 0.12;
+      b.rotation.z = Math.PI / 2 - side * s.brow.v * 1.6;   // lifted: curious; lowered toward the middle: determined
     });
 
-    arms.forEach(({ pivot, side, wave }, i) => {
-      pivot.rotation.z = wave.v * 0.08 + Math.sin(t * 1.9 + i * Math.PI) * 0.04;   // follow-through on the nubs
+    arms.forEach(({ pivot, arm, side, wave, reach }, i) => {
+      const r = Math.max(0, reach.v);
+      pivot.rotation.z = wave.v * 0.08 + Math.sin(t * 1.9 + i * Math.PI) * 0.03 + side * r * 1.75;   // reach swings the arm up to the ear
+      arm.position.x = side * (0.17 + r * 0.3);
     });
 
     ears.forEach((e, i) => {
-      const sway = Math.sin(t * 2.1 + i * 1.7) * (listening ? 0.03 : 0.05);  // secondary action
-      e.pivot.rotation.z = e.rot.v + sway + e.spin.v;
-      e.pivot.position.y = e.baseY + e.drop.v;
-      if (!e.landed && e.drop.t === 0 && e.drop.v < 0.04) { e.landed = true; e.landT = t; onLand(e); }
+      const sway = Math.sin(t * 2.1 + i * 1.7) * 0.03;  // secondary action
+      e.pivot.rotation.z = e.rot.v * 0.6 + sway;
+      const g = Math.max(0, e.grow.v);
+      e.pivot.scale.set(g, g * e.perk.v, g);
       const rt = t - e.landT;
       e.ring.material.opacity = rt < 0.5 ? (1 - rt / 0.5) : 0;
-      e.ring.scale.setScalar(0.4 + Math.min(rt, 0.5) * 3.4);
-      e.pivot.scale.set(1, e.perk.v, 1);
-      // summoned ears glow white-hot, cooling after they lock on
-      e.hot = e.landed ? Math.max(0, e.hot - dt * 2.2) : 1;
-      e.shell.emissiveIntensity = e.hot * 1.4;
-      // beams
-      const target = e.beamOn > 0 ? 1 : 0;
-      const bo = e.beam.material.opacity;
-      e.beam.material.opacity = bo + (target * 0.9 - bo) * Math.min(1, dt * (target ? 10 : 7));
-      e.core.material.opacity = Math.min(1, e.beam.material.opacity * 1.4);
-      e.beam.scale.set(1 + Math.sin(t * 40 + i) * 0.08, 1, 1);
-      e.beam.visible = e.core.visible = e.beam.material.opacity > 0.01;
+      e.ring.scale.setScalar(0.3 + Math.min(rt, 0.5) * 3.2);
+      e.hot = Math.max(0, e.hot - dt * 1.6);              // freshly grown ears glow white-hot, then cool
+      e.shell.emissiveIntensity = e.hot * 1.3;
       e.color.lerp(e.target, Math.min(1, dt * 6));
       e.innerMat.color.copy(e.color).multiplyScalar(0.55);   // darker base keeps the hue after tone mapping
       e.innerMat.emissive.copy(e.color);
-      e.innerMat.emissiveIntensity = (listening ? 0.5 : 0.3) + (rt < 0.7 ? (1 - rt / 0.7) * 1.8 : 0);
+      const tt = t - e.touchT;
+      e.innerMat.emissiveIntensity = (listening ? 0.55 : 0.3) + (rt < 0.7 ? (1 - rt / 0.7) * 1.8 : 0) + (tt < 0.45 ? (1 - tt / 0.45) * 1.3 : 0);
     });
 
     // aura ring at the feet
