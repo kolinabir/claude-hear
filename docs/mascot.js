@@ -213,6 +213,9 @@ export function createMascot(canvas, { still = false } = {}) {
   };
   let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
   let phase = "idle", chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
+  let spinStart = -9, dragging = false, dragX = 0, dragMoved = 0, dragVel = 0;
+  const SPIN = 1.7;                                         // seconds for the 360° showcase turn
+  const yaw = new Spring(0, 5, 4);                          // drag-to-rotate; drifts back to face you
   const slow = /[?&]slowmo/.test(location.search) ? 0.25 : 1;   // ?slowmo: quarter speed, for checking the choreography
   const later = (ms, fn) => { const id = seq; setTimeout(() => { if (id === seq) fn(); }, ms / slow); };
   const emitFx = name => dispatchEvent(new Event(name));
@@ -222,6 +225,18 @@ export function createMascot(canvas, { still = false } = {}) {
     s.lookX.t = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (innerWidth / 2)));
     s.lookY.t = Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height * 0.45)) / (innerHeight / 2)));
   }, { passive: true });
+
+  canvas.style.touchAction = "pan-y";
+  canvas.addEventListener("pointerdown", e => { dragging = true; dragX = e.clientX; dragMoved = 0; dragVel = 0; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing"; });
+  canvas.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragX; dragX = e.clientX; dragMoved += Math.abs(dx);
+    yaw.v += dx * 0.012; dragVel = dx * 0.012 / 0.016; yaw.vel = 0;
+  });
+  const endDrag = () => { if (!dragging) return; dragging = false; canvas.style.cursor = "grab"; yaw.vel = dragVel; };
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+  canvas.style.cursor = "grab";
 
   function burstSparks(x, y, n, speed, color) {
     for (let i = 0; i < n; i++) {
@@ -284,8 +299,9 @@ export function createMascot(canvas, { still = false } = {}) {
     phase = "explore";
     exploreEar(1, 0);                                  // right ear first
     exploreEar(0, 1350);                               // then the left
-    later(2700, () => { gaze = null; s.nod.kick(3); s.brow.t = -0.06; smirkUntil = t + 3; });
-    later(3200, () => {
+    later(2650, () => { gaze = null; spinStart = t; s.hop.kick(1.6); arms.forEach(a => a.wave.kick(a.side * 6)); });   // 360° turn
+    later(2650 + SPIN * 1000 + 120, () => { s.nod.kick(3); s.brow.t = -0.06; smirkUntil = t + 3; });
+    later(2650 + SPIN * 1000 + 600, () => {
       phase = "idle";
       s.aura.t = 0.16; s.auraScale.t = 1;            // a soft shimmer stays
       emitFx("hear:ready");
@@ -339,6 +355,7 @@ export function createMascot(canvas, { still = false } = {}) {
       later(200, () => { s.squash.kick(-2.4); later(110, () => { s.hop.kick(2.6); s.squash.kick(2.4); }); });
     },
     boop() {
+      if (dragMoved > 6) return;                       // that was a drag, not a click
       s.squash.kick(-4);
       ears.forEach(e => e.rot.kick(e.side * 3));
       arms.forEach(a => a.wave.kick(a.side * 8));
@@ -387,7 +404,14 @@ export function createMascot(canvas, { still = false } = {}) {
     root.position.y = y;
     root.position.x = charging ? (Math.random() - 0.5) * 0.045 : 0;   // trembling with power
 
-    head.rotation.y = s.lookX.v * 0.32 + s.turn.v;
+    const sp = Math.min(1, Math.max(0, (t - spinStart) / SPIN));
+    const showYaw = sp > 0 && sp < 1 ? Math.PI * 2 * (sp < 0.5 ? 4 * sp ** 3 : 1 - (-2 * sp + 2) ** 3 / 2) : 0;   // ease in-out
+    if (!dragging) {
+      yaw.step(dt);
+      const turns = Math.round(yaw.v / (Math.PI * 2));      // settle facing front, whichever full turn is nearest
+      yaw.t = turns * Math.PI * 2;
+    }
+    head.rotation.y = s.lookX.v * 0.32 + s.turn.v + showYaw + yaw.v;
     head.rotation.x = -s.lookY.v * 0.16 + s.nod.v * 0.05;
     head.rotation.z = s.tilt.v * 0.05 + Math.sin(t * 0.7) * 0.012;
 
