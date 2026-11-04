@@ -4,7 +4,7 @@ A [Claude Code](https://code.claude.com) skill that gives Claude ears. Claude ca
 so `hear` turns any audio or video file into a report Claude can read (who spoke, what they said,
 and *how* they said it) plus a spectrogram Claude can look at.
 
-Everything runs **locally on your Mac**. Free, private, no API keys.
+Everything runs **locally on macOS, Windows and Linux**. Free, private, no API keys.
 
 ```text
 S1 [00:00.0–00:03.2] (209 wpm) So↑ I started lifting when I was about 12 years old.↓ ↘
@@ -18,7 +18,7 @@ S2 [00:12.6–00:13.1] That's sweet.
 
 | | |
 |---|---|
-| **Words** | Full transcript with a time for every word ([Whisper large-v3 turbo](https://huggingface.co/mlx-community/whisper-large-v3-turbo) on MLX) |
+| **Words** | Full transcript with a time for every word (Whisper large-v3 turbo: [MLX](https://huggingface.co/mlx-community/whisper-large-v3-turbo) on Apple Silicon, [faster-whisper](https://github.com/SYSTRAN/faster-whisper) elsewhere) |
 | **Speakers** | `S1`, `S2`… per line, from a voice fingerprint ([WeSpeaker ResNet34](https://github.com/k2-fsa/sherpa-onnx)) |
 | **Delivery** | `**louder**`, `(quieter)`, pitch `↑ ↓`, rising/falling line ends `↗ ↘`, pauses `‖0.8s‖`, pace in wpm |
 | **Unclear words** | `[?]` where Whisper wasn't sure, so Claude treats it as a guess |
@@ -28,15 +28,33 @@ S2 [00:12.6–00:13.1] That's sweet.
 
 ## Install
 
-You need an **Apple Silicon Mac** (M1–M4) on **macOS 14+** with [Claude Code](https://code.claude.com).
-The installer adds `ffmpeg` (via Homebrew) and [`uv`](https://docs.astral.sh/uv/) if they are missing.
+You need [Claude Code](https://code.claude.com) and one of:
+
+| System | Whisper runs on | Speed (40 s clip) |
+|---|---|---|
+| **macOS, Apple Silicon** (M1–M4, macOS 14+) | the GPU via MLX | fastest: ~45 s for everything |
+| **Windows 10/11** | an NVIDIA GPU if CUDA 12 + cuDNN 9 are installed, else the CPU | fast with a GPU; on the CPU, Whisper alone took 34 s on a fast 10-core CPU (more on laptops) |
+| **Linux** | same as Windows | same as Windows |
+| **macOS, Intel** | the CPU | like a CPU-only PC |
+
+The installer adds `ffmpeg`, `git` and [`uv`](https://docs.astral.sh/uv/) if they are missing
+(Homebrew / apt / dnf / pacman on macOS and Linux, winget on Windows).
+
+**macOS / Linux**
 
 ```bash
 git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
 ~/.claude-hear/install.sh --warm
 ```
 
-`--warm` downloads the models now (~3 GB, a few minutes). Without it, the first listen does it.
+**Windows (PowerShell)**
+
+```powershell
+git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
+powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm
+```
+
+`--warm` / `-Warm` downloads the models now (~3 GB, a few minutes). Without it, the first listen does it.
 
 If the repo is public, the same in one line:
 
@@ -44,7 +62,13 @@ If the repo is public, the same in one line:
 curl -fsSL https://raw.githubusercontent.com/kolinabir/claude-hear/main/install.sh | bash -s -- --warm
 ```
 
-The installer links the skill into `~/.claude/skills/hear`, so every Claude Code session on your Mac can use it.
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kolinabir/claude-hear/main/install.ps1))) -Warm
+```
+
+The skill goes into `~/.claude/skills/hear` (`%USERPROFILE%\.claude\skills\hear` on Windows), so every
+Claude Code session on that computer can use it. On macOS and Linux it is linked to the clone; on Windows
+it is copied, because Windows links need admin rights.
 
 ## Use it
 
@@ -69,7 +93,7 @@ uv run --script ~/.claude/skills/hear/hear.py clip.mp4 --out ./clip-hearing
 | `--separate` | removes music before transcribing, for loud music over speech | +3–4 min |
 | `--language en` | forces the language when it's detected wrong | n/a |
 
-\* M4, models already downloaded.
+\* Apple M4, models already downloaded. On Windows the command is the same, with `$HOME\.claude\skills\hear\hear.py`.
 
 Output in the `--out` folder:
 
@@ -79,13 +103,15 @@ Output in the `--out` folder:
 
 ## Commands
 
-| Task | Command |
-|---|---|
-| Install | `./install.sh` |
-| Install + download models | `./install.sh --warm` |
-| Update | `git -C ~/.claude-hear pull` (the skill is linked, so that's all) |
-| Uninstall | `./uninstall.sh` |
-| Uninstall + delete models | `./uninstall.sh --purge` |
+| Task | macOS / Linux | Windows (PowerShell) |
+|---|---|---|
+| Install | `./install.sh` | `.\install.ps1` |
+| Install + download models | `./install.sh --warm` | `.\install.ps1 -Warm` |
+| Update | `git -C ~/.claude-hear pull` | `git -C $HOME\.claude-hear pull` then `.\install.ps1` |
+| Uninstall | `./uninstall.sh` | `.\uninstall.ps1` |
+| Uninstall + delete models | `./uninstall.sh --purge` | `.\uninstall.ps1 -Purge` |
+
+If PowerShell blocks the script, run it as `powershell -ExecutionPolicy Bypass -File .\install.ps1`.
 
 ## How it works
 
@@ -93,7 +119,7 @@ Output in the `--out` folder:
 your file ─ ffmpeg ─▶ 16 kHz audio
                        │
   1. sounds    CLAP, 2 s windows        → music / laughter / effects
-  2. asr       Whisper (MLX)            → words + timings + confidence
+  2. asr       Whisper (MLX / faster-whisper) → words + timings + confidence
   3. prosody   loudness + pyin pitch    → **loud** (quiet) ↑ ↓ ↗ ↘
   4. speakers  voice fingerprint/line   → S1 / S2
   5. emotion   emotion2vec+ per line    → {sounds happy 0.9}
@@ -108,14 +134,18 @@ Stages run **one at a time** and exit when done, so their memory is freed before
 
 | | |
 |---|---|
-| Peak RAM | **~2.4 GB** (Whisper; every other stage is lower) |
+| Peak RAM | **~2.4 GB** (Whisper, on every system; every other stage is lower) |
 | Models | ~3.5 GB (+0.9 GB only if you use `--separate`) |
-| Python packages | ~3–4 GB in uv's cache (torch, MLX, librosa…) |
-| Speed | ~1.2× the clip length on an M4 |
+| Python packages | ~3–4 GB in uv's cache (torch, MLX or faster-whisper, librosa…) |
+| Speed | ~1.2× the clip length on an M4; Whisper alone took 34 s for a 40 s clip on the M4's CPU (faster-whisper int8, all cores) |
 
 ## Limits
 
-- **Apple Silicon only** (Whisper runs on MLX).
+- **Fastest on Apple Silicon or with an NVIDIA GPU.** On a CPU-only PC, transcription takes about the
+  clip's length or more. On Windows, the GPU needs CUDA 12 and cuDNN 9 installed separately; without them
+  it falls back to the CPU automatically.
+- **Windows and Linux support is new**: the Windows/Linux transcription engine was tested on a Mac's CPU,
+  but the PowerShell installer has not been run on a real Windows PC yet.
 - The marks are cues, not facts: "louder and higher" isn't proof of anger.
 - Emotion leans neutral and was trained mostly on acted speech.
 - Speaker labels are least reliable on very short lines and over loud music; a speaker marked
@@ -129,7 +159,7 @@ Stages run **one at a time** and exit when done, so their memory is freed before
 skill/SKILL.md        instructions Claude reads
 skill/hear.py         runs the stages and writes the report
 skill/stages/*.py     one script per stage
-install.sh            uninstall.sh
+install.sh  install.ps1  uninstall.sh  uninstall.ps1
 docs/                 home page (GitHub Pages)
 research/             how the models were chosen
 results/              test runs

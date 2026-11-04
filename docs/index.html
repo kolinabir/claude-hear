@@ -82,6 +82,9 @@ h1 em { color: var(--signal); }
 .install .p { color: var(--signal); user-select: none; }
 .copy { position: absolute; top: 12px; right: 12px; background: transparent; border: 1px solid #4a443a; color: var(--code-ink); font: 500 12px "IBM Plex Mono", monospace; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
 .copy:hover { border-color: var(--signal); }
+.os { display: inline-flex; gap: 4px; margin-bottom: 10px; padding: 3px; border: 1px solid var(--rule); border-radius: 8px; }
+.os button { background: none; border: 0; padding: 5px 12px; border-radius: 6px; font: 500 12px "IBM Plex Mono", monospace; color: var(--ink-2); cursor: pointer; }
+.os button.on { background: var(--ink); color: var(--paper); }
 .meta { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 18px; font: 13px "IBM Plex Mono", monospace; color: var(--ink-2); }
 .meta span::before { content: "■ "; color: var(--signal); font-size: 9px; vertical-align: 2px; }
 
@@ -213,10 +216,13 @@ footer .logo { font-size: 24px; color: var(--ink); }
     <div>
       <div class="kicker rise">A skill for Claude Code</div>
       <h1 class="rise d1">Claude can't hear.<br><em>Now it can listen.</em></h1>
-      <p class="lede rise d2">Point Claude at any audio or video file. It learns <strong>who spoke, what they said, and how they said it</strong>, all on your Mac, free and private.</p>
-      <div class="install rise d3" id="cmd-hero"><button class="copy" data-copy="cmd-hero">copy</button><span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
+      <p class="lede rise d2">Point Claude at any audio or video file. It learns <strong>who spoke, what they said, and how they said it</strong>, all on your own computer, free and private.</p>
+      <div class="os rise d3" role="tablist"><button class="on" data-os="unix" role="tab">macOS · Linux</button><button data-os="win" role="tab">Windows</button></div>
+      <div class="install rise d3" id="cmd-hero" data-os="unix"><button class="copy" data-copy="cmd-hero">copy</button><span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
 <span class="p">$ </span>~/.claude-hear/install.sh --warm</div>
-      <div class="meta rise d4"><span>Apple Silicon</span><span>~2.4 GB peak RAM</span><span>no API keys</span><span>mp3 · wav · m4a · mp4 · mov</span></div>
+      <div class="install rise d3" id="cmd-hero-win" data-os="win" hidden><button class="copy" data-copy="cmd-hero-win">copy</button><span class="p">&gt; </span>git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
+<span class="p">&gt; </span>powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm</div>
+      <div class="meta rise d4"><span>macOS · Windows · Linux</span><span>~2.4 GB peak RAM</span><span>no API keys</span><span>mp3 · wav · m4a · mp4 · mov</span></div>
     </div>
 
     <div class="demo rise d2" aria-label="Example: a hearing report playing back">
@@ -255,12 +261,12 @@ footer .logo { font-size: 24px; color: var(--ink); }
       <div class="sec-num">02 · How it works</div>
       <div>
         <h2>Five small models, <em>one at a time.</em></h2>
-        <p>Each stage is its own process: it loads, writes its result, exits and hands the memory back. So the peak is the biggest stage, not all of them added up. Measured on an M4 with a 40-second reel.</p>
+        <p>Each stage is its own process: it loads, writes its result, exits and hands the memory back. So the peak is the biggest stage, not all of them added up. Measured on an Apple M4 with a 40-second reel; on a CPU-only PC, step 2 takes longer.</p>
       </div>
     </div>
     <div class="pipe" id="pipe">
       <div class="stage"><span class="n">1</span><h3>sounds<small>CLAP zero-shot</small></h3><p>Labels each 2 s window: <b>music</b>, <b>laughter</b>, <b>applause</b>, <b>whoosh</b>…</p><div class="mem">1.3 GB · 11 s<div class="bar"><i style="--w:54%"></i></div></div></div>
-      <div class="stage"><span class="n">2</span><h3>asr<small>Whisper turbo · MLX</small></h3><p>Every word with its start, end and confidence.</p><div class="mem peak">2.4 GB · 20 s · the peak<div class="bar"><i style="--w:100%"></i></div></div></div>
+      <div class="stage"><span class="n">2</span><h3>asr<small>Whisper turbo · MLX or faster-whisper</small></h3><p>Every word with its start, end and confidence.</p><div class="mem peak">2.4 GB · 20 s · the peak<div class="bar"><i style="--w:100%"></i></div></div></div>
       <div class="stage"><span class="n">3</span><h3>prosody<small>loudness + pyin pitch</small></h3><p>dB and Hz per word, which become <b>**loud**</b>, <b>(quiet)</b>, <b>↑ ↓ ↗ ↘</b>.</p><div class="mem">0.25 GB · 6 s<div class="bar"><i style="--w:10%"></i></div></div></div>
       <div class="stage"><span class="n">4</span><h3>speakers<small>WeSpeaker fingerprint</small></h3><p>A voice fingerprint per line, grouped by similarity into <b>S1</b>, <b>S2</b>.</p><div class="mem">0.15 GB · 1 s<div class="bar"><i style="--w:6%"></i></div></div></div>
       <div class="stage"><span class="n">5</span><h3>emotion<small>emotion2vec+ · ONNX</small></h3><p>An emotion guess for each line longer than 1.5 s.</p><div class="mem">1.1 GB · 4 s<div class="bar"><i style="--w:46%"></i></div></div></div>
@@ -269,7 +275,7 @@ footer .logo { font-size: 24px; color: var(--ink); }
       <div><strong>2.4 GB</strong><span>peak RAM, any clip length</span></div>
       <div><strong>~1.2×</strong><span>clip length to process</span></div>
       <div><strong>~3.5 GB</strong><span>models, downloaded once</span></div>
-      <div><strong>0</strong><span>bytes leave your Mac</span></div>
+      <div><strong>0</strong><span>bytes leave your computer</span></div>
     </div>
   </section>
 
@@ -278,20 +284,32 @@ footer .logo { font-size: 24px; color: var(--ink); }
       <div class="sec-num">03 · Install</div>
       <div>
         <h2>Two commands, <em>then just ask.</em></h2>
-        <p>Needs an Apple Silicon Mac on macOS 14+ and Claude Code. The installer adds ffmpeg and uv if they're missing, then links the skill into <span class="mono">~/.claude/skills/hear</span>.</p>
+        <p>Works on macOS, Windows and Linux with Claude Code. Fastest on Apple Silicon (MLX) or with an NVIDIA GPU; otherwise Whisper runs on the CPU. The installer adds ffmpeg, git and uv if they're missing, then puts the skill in <span class="mono">~/.claude/skills/hear</span>.</p>
       </div>
     </div>
     <div class="steps">
       <div class="card">
         <h3>Install</h3>
         <p><span class="mono">--warm</span> downloads the models now (~3 GB, a few minutes) instead of on the first listen.</p>
-        <div class="install" id="cmd-2"><button class="copy" data-copy="cmd-2">copy</button><span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
+        <div class="os" role="tablist"><button class="on" data-os="unix" role="tab">macOS · Linux</button><button data-os="win" role="tab">Windows</button></div>
+        <div data-os="unix">
+          <div class="install" id="cmd-2"><button class="copy" data-copy="cmd-2">copy</button><span class="p">$ </span>git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear
 <span class="p">$ </span>~/.claude-hear/install.sh --warm</div>
-        <table style="margin-top:20px">
-          <tr><td>Update</td><td><code>git -C ~/.claude-hear pull</code></td></tr>
-          <tr><td>Uninstall</td><td><code>~/.claude-hear/uninstall.sh</code></td></tr>
-          <tr><td>…and models</td><td><code>~/.claude-hear/uninstall.sh --purge</code></td></tr>
-        </table>
+          <table style="margin-top:20px">
+            <tr><td>Update</td><td><code>git -C ~/.claude-hear pull</code></td></tr>
+            <tr><td>Uninstall</td><td><code>~/.claude-hear/uninstall.sh</code></td></tr>
+            <tr><td>…and models</td><td><code>~/.claude-hear/uninstall.sh --purge</code></td></tr>
+          </table>
+        </div>
+        <div data-os="win" hidden>
+          <div class="install" id="cmd-2w"><button class="copy" data-copy="cmd-2w">copy</button><span class="p">&gt; </span>git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
+<span class="p">&gt; </span>powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm</div>
+          <table style="margin-top:20px">
+            <tr><td>Update</td><td><code>git -C $HOME\.claude-hear pull</code>, then run <code>install.ps1</code> again</td></tr>
+            <tr><td>Uninstall</td><td><code>$HOME\.claude-hear\uninstall.ps1</code></td></tr>
+            <tr><td>…and models</td><td><code>$HOME\.claude-hear\uninstall.ps1 -Purge</code></td></tr>
+          </table>
+        </div>
       </div>
       <div class="card">
         <h3>Then ask Claude Code</h3>
@@ -316,7 +334,7 @@ footer .logo { font-size: 24px; color: var(--ink); }
       <div><h2>Cues, <em>not certainty.</em></h2></div>
     </div>
     <div class="limits">
-      <div><h4>Apple Silicon only</h4><p>Whisper runs on MLX, so it needs an M-series Mac.</p></div>
+      <div><h4>CPU-only PCs are slower</h4><p>Without Apple Silicon or an NVIDIA GPU, transcription runs on the CPU and takes about the clip's length or more.</p></div>
       <div><h4>Marks aren't feelings</h4><p>"Louder and higher" suggests emphasis; it doesn't prove anger.</p></div>
       <div><h4>Emotion leans neutral</h4><p>The model learned mostly from acted speech.</p></div>
       <div><h4>Short lines blur speakers</h4><p>Under a second, or over loud music, a voice can be misread; such speakers are flagged "brief".</p></div>
@@ -398,8 +416,16 @@ else new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { play(0); 
 // memory bars fill when the pipeline scrolls into view
 new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { document.getElementById("pipe").classList.add("seen"); o.disconnect(); } }, { threshold: .3 }).observe(document.getElementById("pipe"));
 
+// macOS/Linux vs Windows commands; default to the visitor's system
+function showOS(os) {
+  document.querySelectorAll(".os button").forEach(b => b.classList.toggle("on", b.dataset.os === os));
+  document.querySelectorAll("[data-os]:not(button)").forEach(el => el.hidden = el.dataset.os !== os);
+}
+document.querySelectorAll(".os button").forEach(b => b.onclick = () => showOS(b.dataset.os));
+if (/Win/.test(navigator.userAgentData?.platform || navigator.platform)) showOS("win");
+
 document.querySelectorAll(".copy").forEach(btn => btn.onclick = () => {
-  const text = document.getElementById(btn.dataset.copy).innerText.replace(/^copy/, "").replace(/^\$ /gm, "").trim();
+  const text = document.getElementById(btn.dataset.copy).innerText.replace(/^copy/, "").replace(/^[$>] /gm, "").trim();
   navigator.clipboard.writeText(text).then(() => { btn.textContent = "copied"; setTimeout(() => btn.textContent = "copy", 1400); });
 });
 </script>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the "hear" skill for Claude Code.
+# Install the "hear" skill for Claude Code on macOS or Linux (Windows: install.ps1).
 #   ./install.sh           link the skill (installs ffmpeg and uv if missing)
 #   ./install.sh --warm    also download all models now (~3 GB) by listening to a test clip
 # Run it from a clone, or via curl: it then clones to ~/.claude-hear (override with CLAUDE_HEAR_DIR).
@@ -19,16 +19,31 @@ done
 say_step() { printf '\n\033[1m▸ %s\033[0m\n' "$1"; }
 die() { printf '\033[31m✗ %s\033[0m\n' "$1" >&2; exit 1; }
 
-say_step "Checking this Mac"
-[[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" ]] || die "hear needs an Apple Silicon Mac (it runs Whisper on MLX)."
-major="$(sw_vers -productVersion | cut -d. -f1)"
-(( major >= 14 )) || die "hear needs macOS 14 or newer (you have $(sw_vers -productVersion))."
-echo "Apple Silicon, macOS $(sw_vers -productVersion)"
+say_step "Checking this computer"
+os="$(uname -s)"; arch="$(uname -m)"
+case "$os" in
+  Darwin)
+    if [[ "$arch" == "arm64" ]]; then
+      major="$(sw_vers -productVersion | cut -d. -f1)"
+      (( major >= 14 )) || die "On Apple Silicon, hear needs macOS 14 or newer (you have $(sw_vers -productVersion))."
+      echo "Apple Silicon, macOS $(sw_vers -productVersion): Whisper runs on the GPU (MLX)"
+    else
+      echo "Intel Mac: Whisper runs on the CPU (faster-whisper), slower than Apple Silicon"
+    fi ;;
+  Linux)
+    if command -v nvidia-smi >/dev/null; then echo "Linux with an NVIDIA GPU: Whisper runs on CUDA when its libraries are installed"
+    else echo "Linux: Whisper runs on the CPU (faster-whisper)"; fi ;;
+  *) die "Unsupported system: $os. On Windows, run install.ps1 in PowerShell." ;;
+esac
 
 say_step "Checking ffmpeg and uv"
 if ! command -v ffmpeg >/dev/null; then
-  command -v brew >/dev/null || die "ffmpeg is missing. Install Homebrew (https://brew.sh) or ffmpeg, then rerun."
-  brew install ffmpeg
+  if command -v brew >/dev/null; then brew install ffmpeg
+  elif command -v apt-get >/dev/null; then sudo apt-get install -y ffmpeg
+  elif command -v dnf >/dev/null; then sudo dnf install -y ffmpeg
+  elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm ffmpeg
+  else die "ffmpeg is missing. Install it with your package manager, then rerun."
+  fi
 fi
 if ! command -v uv >/dev/null; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -68,8 +83,8 @@ echo "$SKILL_DIR → $SRC/skill"
 if (( WARM )); then
   say_step "Downloading models (~3 GB, a few minutes, once)"
   tmp="$(mktemp -d)"
-  say -o "$tmp/hello.aiff" "Hello. This is a test, so the hear skill can download its models."
-  uv run --script "$SRC/skill/hear.py" "$tmp/hello.aiff" --out "$tmp/out"
+  ffmpeg -v error -f lavfi -i "sine=frequency=220:duration=3" "$tmp/tone.wav"  # any audio triggers every download
+  uv run --script "$SRC/skill/hear.py" "$tmp/tone.wav" --out "$tmp/out"
   rm -rf "$tmp"
 fi
 

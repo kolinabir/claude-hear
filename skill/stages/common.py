@@ -1,6 +1,6 @@
 """Shared helpers for hear stages. Each stage is its own process so its memory is freed when it exits."""
 import json
-import resource
+import sys
 import time
 import urllib.request
 import wave
@@ -29,11 +29,32 @@ def save(out: Path, name, data, t0, gpu_bytes=0):
     (out / "stats").mkdir(exist_ok=True)
     (out / "stats" / f"{name}.json").write_text(json.dumps({
         "seconds": round(time.time() - t0, 1),
-        # macOS reports bytes; children = worker processes (largest one)
-        "ram_gb": round(max(resource.getrusage(r).ru_maxrss
-                            for r in (resource.RUSAGE_SELF, resource.RUSAGE_CHILDREN)) / 1e9, 2),
+        "ram_gb": round(peak_ram() / 1e9, 2),
         "gpu_gb": round(gpu_bytes / 1e9, 2),
     }))
+
+
+def peak_ram():
+    """Peak resident memory in bytes, this process and its largest finished child."""
+    if sys.platform == "win32":
+        import ctypes
+        from ctypes import wintypes
+
+        class Counters(ctypes.Structure):
+            _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD)] + [
+                (n, ctypes.c_size_t) for n in ("PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage",
+                                               "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage",
+                                               "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage")]
+
+        k32 = ctypes.WinDLL("kernel32")
+        k32.GetCurrentProcess.restype = wintypes.HANDLE
+        k32.K32GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+        c = Counters(cb=ctypes.sizeof(Counters))
+        k32.K32GetProcessMemoryInfo(k32.GetCurrentProcess(), ctypes.byref(c), c.cb)
+        return c.PeakWorkingSetSize  # shortcut: worker processes aren't counted on Windows
+    import resource
+    peak = max(resource.getrusage(r).ru_maxrss for r in (resource.RUSAGE_SELF, resource.RUSAGE_CHILDREN))
+    return peak if sys.platform == "darwin" else peak * 1024  # Linux reports KiB, macOS bytes
 
 
 def fetch(url, name):

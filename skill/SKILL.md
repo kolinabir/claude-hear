@@ -6,7 +6,8 @@ description: Listen to an audio or video file (mp3, wav, m4a, aac, mp4, mov, web
 # Hear
 
 Claude has no audio input. This skill turns sound into text Claude can read and an image Claude can see.
-Everything runs locally on Apple Silicon and is free.
+Everything runs locally and free on macOS, Windows and Linux. Whisper uses the GPU on Apple Silicon (MLX)
+or an NVIDIA GPU when CUDA works; otherwise it runs on the CPU.
 
 ## Run
 
@@ -14,16 +15,17 @@ Everything runs locally on Apple Silicon and is free.
 uv run --script <this skill's base directory>/hear.py "<file>" --out "<scratchpad>/hear-<name>"
 ```
 
-| Option | Use when | Cost (40 s clip, warm) |
+| Option | Use when | Cost (40 s clip, warm, Apple M4) |
 |---|---|---|
 | (default, full) | almost always | ~45–50 s |
 | `--fast` | only the words and delivery matter (no speakers, sounds, emotion) | ~30 s |
 | `--separate` | loud music drowns the speech and the report shows many `[?]` | +3–4 min |
 | `--language en` | the language is detected wrong | — |
 
+- On a PC without an NVIDIA GPU, transcription runs on the CPU and takes roughly the clip's length or more; run long files in the background.
 - Stages run one at a time in separate processes, so peak memory is ~2.4 GB (Whisper) however many stages run.
 - First run downloads models (~3 GB in total) and Python packages; it takes several minutes. Later runs are fast.
-- Files over ~5 minutes: run it in the background.
+- Files over ~5 minutes (or ~2 minutes on a CPU-only PC): run it in the background.
 
 ## Read the output
 

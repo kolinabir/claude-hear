@@ -24,7 +24,7 @@ NOT_EVENTS = {"speech", "silence", "music", "singing"}
 def run(stage, *args, required=False):
     t = time.time()
     p = subprocess.run(["uv", "run", "--quiet", "--script", str(STAGES / f"{stage}.py"), *map(str, args)],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     if p.returncode:
         msg = f"stage {stage} failed:\n" + "\n".join(p.stderr.strip().splitlines()[-8:])
         if required:
@@ -164,7 +164,7 @@ def render(out, info):
     stats = {p.stem: json.loads(p.read_text()) for p in sorted((out / "stats").glob("*.json"))}
     L += ["", "## Run", "", "| stage | seconds | process RAM GB | MLX GPU GB |", "|---|---|---|---|"]
     L += [f"| {k} | {v['seconds']} | {v['ram_gb']} | {v['gpu_gb']} |" for k, v in stats.items()]
-    (out / "hearing.md").write_text("\n".join(L) + "\n")
+    (out / "hearing.md").write_text("\n".join(L) + "\n", encoding="utf-8")  # Windows defaults to cp1252: ↑↗ would fail
 
     for w in words:
         w["speaker"] = None
