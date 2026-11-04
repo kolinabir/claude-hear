@@ -103,7 +103,7 @@ export function createMascot(canvas, { still = false } = {}) {
   const lowPoly = window.innerWidth < 640;
   const seg = lowPoly ? 32 : 56, rseg = lowPoly ? 4 : 7;
   const sphere = new THREE.SphereGeometry(1, seg, seg);
-  const clay = new THREE.MeshPhysicalMaterial({ color: COL.clay, roughness: 0.55, clearcoat: 0.2, clearcoatRoughness: 0.4, envMapIntensity: 0.4, emissive: COL.jade.clone(), emissiveIntensity: 0 });
+  const clay = new THREE.MeshPhysicalMaterial({ color: COL.clay, roughness: 0.55, clearcoat: 0.2, clearcoatRoughness: 0.4, envMapIntensity: 0.4, emissive: new THREE.Color(0xffb070), emissiveIntensity: 0 });   // warm glow keeps it terracotta
   const ink = new THREE.MeshStandardMaterial({ color: COL.ink, roughness: 0.4 });
   const eyeInk = ink.clone(); eyeInk.emissive = COL.jade.clone(); eyeInk.emissiveIntensity = 0;
   const glow = c => lightBlend(new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, depthWrite: false }));
@@ -211,15 +211,15 @@ export function createMascot(canvas, { still = false } = {}) {
     tilt: new Spring(0, 90, 9), nod: new Spring(0, 110, 10), turn: new Spring(0, 45, 10),
     open: new Spring(1, 320, 24), size: new Spring(1, 140, 8), brow: new Spring(-0.04, 160, 10),
     lean: new Spring(0, 55, 9),
-    aura: new Spring(0, 30, 9), auraScale: new Spring(1, 60, 7), bodyGlow: new Spring(0, 40, 9), eyeGlow: new Spring(0, 30, 9),
+    aura: new Spring(0, 30, 9), auraScale: new Spring(1, 60, 7), bodyGlow: new Spring(0, 40, 9), eyeGlow: new Spring(0, 60, 16),
   };
   let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
   let phase = "idle", chargeStart = 0, chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
   const sfx = createSfx();
-  const CHARGE = 3.0;                                       // seconds of charging before the burst
+  const CHARGE = 2.4;                                       // seconds of charging before the burst
   let cupSide = 0, startledUntil = 0;
   let spinStart = -9, dragging = false, dragX = 0, dragMoved = 0, dragVel = 0;
-  const SPIN = 1.7;                                         // seconds for the 360° showcase turn
+  const SPIN = 1.2;                                         // seconds for the 360° showcase turn
   const yaw = new Spring(0, 5, 4);                          // drag-to-rotate; drifts back to face you
   const slow = /[?&]slowmo/.test(location.search) ? 0.25 : 1;   // ?slowmo: quarter speed, for checking the choreography
   const later = (ms, fn) => { const id = seq; setTimeout(() => { if (id === seq) fn(); }, ms / slow); };
@@ -296,18 +296,16 @@ export function createMascot(canvas, { still = false } = {}) {
   function exploreEar(i, at) {
     const e = ears[i], a = arms[i];
     later(at, () => { gaze = { x: e.side * 0.85, y: 0.15 }; s.brow.t = 0.08; a.reach.t = 1; });
-    later(at + 430, () => { touchEar(e); ohUntil = t + 0.55; });
-    later(at + 680, () => { a.reach.kick(-4); later(90, () => touchEar(e)); });
-    later(at + 950, () => { a.reach.kick(-4); later(90, () => touchEar(e)); });
-    later(at + 1250, () => { a.reach.t = 0; });
+    later(at + 380, () => { touchEar(e); ohUntil = t + 0.5; });
+    later(at + 820, () => { a.reach.t = 0; });
   }
   function explore() {
     phase = "explore";
     exploreEar(1, 0);                                  // right ear first
-    exploreEar(0, 1350);                               // then the left
-    later(2650, () => { gaze = null; spinStart = t; sfx.whoosh(SPIN / slow); s.hop.kick(1.6); arms.forEach(a => a.wave.kick(a.side * 6)); });   // 360° turn
-    later(2650 + SPIN * 1000 + 120, () => { s.nod.kick(3); s.brow.t = -0.06; smirkUntil = t + 3; });
-    later(2650 + SPIN * 1000 + 600, () => {
+    exploreEar(0, 900);                                // then the left
+    later(1750, () => { gaze = null; spinStart = t; sfx.whoosh(SPIN / slow); s.hop.kick(1.6); arms.forEach(a => a.wave.kick(a.side * 6)); });   // 360° turn
+    later(1750 + SPIN * 1000 + 120, () => { s.nod.kick(3); s.brow.t = -0.06; smirkUntil = t + 3; });
+    later(1750 + SPIN * 1000 + 400, () => {
       phase = "idle";
       s.aura.t = 0.16; s.auraScale.t = 1;            // a soft shimmer stays
       emitFx("hear:ready");
@@ -363,9 +361,9 @@ export function createMascot(canvas, { still = false } = {}) {
       s.bodyGlow.v = 0.9; s.bodyGlow.t = 0;
       burstSparks(-0.7, 0.55, 70, 6, COL.jade);
       burstSparks(-0.7, 0.55, 35, 4.5, COL.white);
-      sfx.thud();
+      later(70, () => sfx.thud());                  // light first, then sound
       emitFx("hear:impact2");
-      later(450, startCharge);
+      later(1700, startCharge);                       // let the dust settle before powering up
     },
     // anticipation: crouch, then spring up with ears forward
     listen() {
@@ -483,7 +481,7 @@ export function createMascot(canvas, { still = false } = {}) {
       g.position.y = 0.06 + s.lookY.v * 0.05;
     });
     eyeInk.emissiveIntensity = Math.max(0, s.eyeGlow.v);
-    clay.emissiveIntensity = Math.max(0, s.bodyGlow.v) * 0.9;
+    clay.emissiveIntensity = Math.min(0.6, Math.max(0, s.bodyGlow.v) * 0.9);
     power.intensity *= Math.exp(-dt * 4);
 
     // mouth: firm line; a small open mouth when surprised; a one-sided smirk after powering up
