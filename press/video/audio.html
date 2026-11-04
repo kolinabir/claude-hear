@@ -10,7 +10,7 @@ const ctx = new OfflineAudioContext(2, SR * dur, SR);
 let cur = 0;
 const sfx = createSfx({ ctx, now: () => cur, on: true });
 for (const [name, args, t] of log.log) {
-  if (name === "set" || name === "level" || name === "stopRiser" && false) continue;
+  if (name === "set" || name === "level" || typeof sfx[name] !== "function") continue;
   cur = t;
   try { sfx[name](...args); } catch (e) { console.error(name, e); }
 }

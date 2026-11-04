@@ -145,10 +145,12 @@ const lineHtml = [
   '<span class="s1">S1</span> <span class="q">(It) (even) (knows) (when) (I) (whisper.)</span>',
   '<span class="s2">S2</span> Okay, ‖0.5s‖ that\'s terrifying.<span class="m">↓</span> <span class="e">{fearful}</span>',
 ];
+const LINE_GAP = 2300;   // the real clip's lines play under these, so they need room
 addEventListener("hear:ready", () => {
+  log.push(["ready", [], (performance.now() - T0) / 1000]);
   show(top, "Now it <em>can.</em>");
-  lineHtml.forEach((h, i) => at(700 + i * 900, () => { const d = document.createElement("div"); d.innerHTML = h; lines.appendChild(d); requestAnimationFrame(() => d.classList.add("on")); m.boop && i === 3 && m.boop(); }));
-  at(700 + 4 * 900 + 1200, () => { end.classList.add("on"); });
+  lineHtml.forEach((h, i) => at(700 + i * LINE_GAP, () => { const d = document.createElement("div"); d.innerHTML = h; lines.appendChild(d); requestAnimationFrame(() => d.classList.add("on")); m.boop && i === 3 && m.boop(); }));
+  at(700 + 3 * LINE_GAP + 2600, () => { end.classList.add("on"); });
   // ?log=1: after the end card, replace the page with the sound log (read back with --dump-dom to render the audio offline)
 });
 }
