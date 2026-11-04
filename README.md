@@ -23,7 +23,7 @@ S2 [00:12.6–00:13.1] That's sweet.
 | **Delivery** | `**louder**`, `(quieter)`, pitch `↑ ↓`, rising/falling line ends `↗ ↘`, pauses `‖0.8s‖`, pace in wpm |
 | **Unclear words** | `[?]` where Whisper wasn't sure, so Claude treats it as a guess |
 | **Emotion** | `{sounds happy 0.9}` when confident ([emotion2vec+](https://huggingface.co/Voldorn/emotion2vec-plus-large-onnx)) |
-| **Sounds** | background music, laughter, applause, whooshes… ([CLAP](https://huggingface.co/laion/clap-htsat-unfused), zero-shot) |
+| **Sounds** | background music share ([CLAP](https://huggingface.co/laion/clap-htsat-unfused), zero-shot) and events like beeps, laughter, applause, noise ([CED](https://github.com/RicherMans/CED) via sherpa-onnx, 527 AudioSet labels) |
 | **Spectrogram** | an image of the sound for anything the labels miss |
 
 ## Install
@@ -123,7 +123,7 @@ your file ─ ffmpeg ─▶ 16 kHz audio
   2. prosody   loudness + pyin pitch    → **loud** (quiet) ↑ ↓ ↗ ↘
   3. speakers  voice fingerprint/line   → S1 / S2
   4. emotion   emotion2vec+ per line    → {sounds happy 0.9}
-  5. sounds    CLAP (ONNX), 2 s windows → music / laughter / effects
+  5. sounds    CLAP (ONNX) + CED, 2 s windows → music share / events
                        │
              hearing.md + spectrogram.png + words.json
 ```
@@ -151,7 +151,7 @@ Whisper runs first on its own; the four light stages then run **together** in th
 - Emotion leans neutral and was trained mostly on acted speech.
 - Speaker labels are least reliable on very short lines and over loud music; a speaker marked
   *brief* may be the main voice misheard.
-- Sound labels are guesses: CLAP confuses neighbours like laughing vs coughing, or speech-over-music vs singing.
+- Sound labels are guesses: CED lists AudioSet labels with their probability (often low, 0.1–0.5), and CLAP's music share confuses speech-over-music with singing.
 - Pitch is only given for words with clear voicing (about half).
 
 ## Repo layout

@@ -1,8 +1,11 @@
 # /// script
 # requires-python = ">=3.11,<3.13"
-# dependencies = ["onnxruntime>=1.18", "huggingface_hub", "numpy"]
+# dependencies = ["onnxruntime>=1.18", "sherpa-onnx>=1.10", "huggingface_hub", "numpy"]
 # ///
-"""Name non-speech sounds per second with CLAP zero-shot (laion/clap-htsat-unfused). Reads the original file at 48 kHz.
+"""Name non-speech sounds per second: CLAP zero-shot for the music share, CED (AudioSet, 527 labels) for events.
+
+Reads the original file at 48 kHz for CLAP and 16 kHz for CED. CED (sherpa-onnx, 10 MB) catches short events CLAP
+misses (a beep, a noise burst) and tells speech from singing better; CLAP keeps the music/singing share.
 
 The audio encoder is the ONNX export of the same weights (Xenova/clap-htsat-unfused; embeddings match torch
 to cosine 1.000). The label embeddings were computed once from the text model and ship in clap_labels.npz,
@@ -11,12 +14,13 @@ The log-mel input is computed here in numpy, matching transformers' ClapFeatureE
 """
 import subprocess
 import sys
+import tarfile
 import time
 from pathlib import Path
 
 import numpy as np
 
-from common import save
+from common import CACHE, SR, fetch, save
 
 SR48 = 48000
 WIN, HOP = 2.0, 1.0  # 2 s windows every 1 s
@@ -28,6 +32,8 @@ LABELS = [
     "breathing", "coughing", "crying", "screaming",
 ]
 MUSIC = {"music", "singing"}
+CED = "sherpa-onnx-ced-mini-audio-tagging-2024-04-19"
+CED_URL = f"https://github.com/k2-fsa/sherpa-onnx/releases/download/audio-tagging-models/{CED}.tar.bz2"
 N_FFT, MEL_HOP, N_MEL, MAX_LEN = 1024, 480, 64, 10 * SR48  # ClapFeatureExtractor settings for clap-htsat-unfused
 
 
@@ -64,6 +70,17 @@ def log_mel(clip, fb):
     mel = np.maximum(1e-10, power @ fb)
     return (10.0 * np.log10(mel)).astype(np.float32)
 
+
+def ced_tagger():
+    import sherpa_onnx
+    d = CACHE / CED
+    if not d.exists():
+        with tarfile.open(fetch(CED_URL, f"{CED}.tar.bz2")) as t:
+            t.extractall(CACHE, filter="data")
+    return sherpa_onnx.AudioTagging(sherpa_onnx.AudioTaggingConfig(
+        model=sherpa_onnx.AudioTaggingModelConfig(ced=str(d / "model.int8.onnx"), num_threads=2, provider="cpu"),
+        labels=str(d / "class_labels_indices.csv"), top_k=3))
+
 if __name__ == "__main__":
     src, out = sys.argv[1], Path(sys.argv[2])
     t0 = time.time()
@@ -90,9 +107,17 @@ if __name__ == "__main__":
     probs = np.exp(logits - logits.max(-1, keepdims=True))
     probs /= probs.sum(-1, keepdims=True)
 
+    tagger = ced_tagger()
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", src, "-vn", "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+                         capture_output=True, check=True).stdout
+    y16 = np.frombuffer(raw, np.float32)
+
     windows = []
     for s, p in zip(starts, probs):
+        st = tagger.create_stream()
+        st.accept_waveform(SR, y16[int(s * SR):int((s + WIN) * SR)])
         top = np.argsort(p)[::-1][:3]
         windows.append({"t": float(s), "top": [[LABELS[k], round(float(p[k]), 2)] for k in top],
+                        "events": [[e.name, round(float(e.prob), 2)] for e in tagger.compute(st, 3)],
                         "music": round(float(sum(p[LABELS.index(m)] for m in MUSIC)), 2)})
     save(out, "sounds", {"windows": windows, "win": WIN}, t0)

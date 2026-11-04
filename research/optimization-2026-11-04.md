@@ -64,10 +64,16 @@ still lower. Cutting pyin's 4-process pool would help more, see below.
   Synthesizer), so its music detection on real music is untested here. Not applied: it changes the Sounds
   section, so it needs a decision and a look at real-music clips first.
 
+- **CED added next to CLAP** (same day, after a decision): the sounds stage now also runs CED-mini on each 2 s
+  window at 16 kHz and stores its top 3 labels as `events`; the report lists CED labels ≥ 0.1 outside a skip set
+  (speech, silence, music, room ambience) and keeps CLAP for the music share. On the 44 s scene this adds the
+  beep, the noise burst and a "sound effect" around the gap; one false "radio (0.22)". The three speech-only
+  clips gained no events. Cost: +0.2 s, 10 MB model, 49 MB download, sounds stage still ~0.3 GB.
+
 ## Still possible
 
-- CED alongside CLAP in the sounds stage (+0.2 s, +10 MB): CED for events, CLAP kept for the music share.
 - CPU-only Windows/Linux: not measured here; the same torch removal applies.
+- CED on real music: untested (the test bed is synthetic sines, which it calls "sine wave" / "synthesizer").
 
 ## Claude Code docs check (same day)
 

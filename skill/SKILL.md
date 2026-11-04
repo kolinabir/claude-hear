@@ -32,7 +32,7 @@ uv run --script <this skill's base directory>/hear.py "<file>" --out "<scratchpa
 
 1. Read `hearing.md`:
    - **Speakers**: how many voices, share of talking time, typical pitch. A speaker marked "brief" may be a false split caused by music or noise; say so rather than asserting a second person.
-   - **Sounds**: background music likelihood, where music is prominent, and "possibly X" events (laughter, applause, whoosh, crowd...). These are CLAP guesses; it confuses neighbours like laughter vs coughing/crying and speech-over-music vs singing.
+   - **Sounds**: background music likelihood, where music is prominent, and "possibly X" events (laughter, applause, whoosh, crowd...). Events come from CED (an AudioSet tagger, 527 labels), the music share from CLAP; both are guesses; it confuses neighbours like laughter vs coughing/crying and speech-over-music vs singing.
    - **Timeline**, one line per phrase, prefixed `S1`/`S2` when there are several speakers:
      - `**word**` clearly louder (emphasis), `(word)` clearly quieter (trailing off, aside)
      - `↑` / `↓` pitch well above / below *that speaker's* normal

@@ -65,7 +65,7 @@
         "Speaker labels from a voice fingerprint per line",
         "Loudness, pitch, pauses, pace and sentence-end intonation marks",
         "Emotion guesses (emotion2vec+)",
-        "Non-speech sound labels such as music, laughter and applause (CLAP)",
+        "Non-speech sound labels such as music, laughter, applause and beeps (CLAP and CED)",
         "Spectrogram image",
         "Runs fully offline after models download"
       ],
@@ -78,7 +78,7 @@
       "mainEntity": [
         {"@type": "Question", "name": "Can Claude listen to audio?", "acceptedAnswer": {"@type": "Answer", "text": "Not on its own: Claude has no audio input. hear gives Claude Code a way to listen. It turns an audio or video file into a text report (a word-timed transcript, speakers, delivery marks, emotion guesses and sound labels) plus a spectrogram image, and Claude reads those."}},
         {"@type": "Question", "name": "What does hear give Claude?", "acceptedAnswer": {"@type": "Answer", "text": "A report Claude can read: a transcript with a time and confidence for every word, speaker labels (S1, S2…) with each speaker's share of the talking, delivery marks for loudness, pitch, pauses, pace and rising or falling line ends, emotion guesses when they're confident, labels for sounds like music, laughter and applause, and a spectrogram image of the audio."}},
-        {"@type": "Question", "name": "How does hear work?", "acceptedAnswer": {"@type": "Answer", "text": "It runs five local stages, each in its own process: speech-to-text with Whisper large-v3 turbo first, then loudness and pitch with librosa, speaker fingerprints with WeSpeaker, emotion with emotion2vec+ and sound labels with CLAP together. The four light stages use less memory combined than Whisper, so peak memory is Whisper's, not the sum."}},
+        {"@type": "Question", "name": "How does hear work?", "acceptedAnswer": {"@type": "Answer", "text": "It runs five local stages, each in its own process: speech-to-text with Whisper large-v3 turbo first, then loudness and pitch with librosa, speaker fingerprints with WeSpeaker, emotion with emotion2vec+ and sound labels with CLAP and CED together. The four light stages use less memory combined than Whisper, so peak memory is Whisper's, not the sum."}},
         {"@type": "Question", "name": "What do the marks in the report mean?", "acceptedAnswer": {"@type": "Answer", "text": "**word** is clearly louder, (word) is clearly quieter, ↑ and ↓ mean pitch well above or below that speaker's normal, ↗ and ↘ mean a line ends rising or falling, ‖0.8s‖ is a pause, [?] means Whisper was unsure, and {sounds happy 0.9} is an emotion guess."}},
         {"@type": "Question", "name": "Does hear send my audio to the cloud?", "acceptedAnswer": {"@type": "Answer", "text": "No. Every model runs on your own computer. The only network use is the one-time download of about 2.5 GB of models."}},
         {"@type": "Question", "name": "Which operating systems does hear support?", "acceptedAnswer": {"@type": "Answer", "text": "macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows, Linux and Intel Macs use faster-whisper, on an NVIDIA GPU when CUDA 12 and cuDNN 9 are installed, otherwise on the CPU. Windows and Linux support is in beta."}},
@@ -475,10 +475,10 @@ footer a:hover { color: var(--text); }
 
   <div class="built" aria-label="Built on">
     <div class="track" aria-hidden="true">
-      <span>Whisper large-v3 turbo</span><span>CLAP</span><span>WeSpeaker</span><span>emotion2vec+</span><span>librosa</span><span>ffmpeg</span><span>MLX</span><span>faster-whisper</span>
-      <span>Whisper large-v3 turbo</span><span>CLAP</span><span>WeSpeaker</span><span>emotion2vec+</span><span>librosa</span><span>ffmpeg</span><span>MLX</span><span>faster-whisper</span>
+      <span>Whisper large-v3 turbo</span><span>CLAP</span><span>CED</span><span>WeSpeaker</span><span>emotion2vec+</span><span>librosa</span><span>ffmpeg</span><span>MLX</span><span>faster-whisper</span>
+      <span>Whisper large-v3 turbo</span><span>CLAP</span><span>CED</span><span>WeSpeaker</span><span>emotion2vec+</span><span>librosa</span><span>ffmpeg</span><span>MLX</span><span>faster-whisper</span>
     </div>
-    <p class="sr">Built on Whisper large-v3 turbo, CLAP, WeSpeaker, emotion2vec+, librosa, ffmpeg, MLX and faster-whisper.</p>
+    <p class="sr">Built on Whisper large-v3 turbo, CLAP, CED, WeSpeaker, emotion2vec+, librosa, ffmpeg, MLX and faster-whisper.</p>
   </div>
 
   <section id="platforms" aria-labelledby="p-title">
@@ -575,7 +575,7 @@ footer a:hover { color: var(--text); }
       <div class="rv">
         <details open><summary>Can Claude listen to audio?</summary><p>Not on its own: Claude has no audio input. hear gives Claude Code a way to listen. It turns an audio or video file into a text report (a word-timed transcript, speakers, delivery marks, emotion guesses and sound labels) plus a spectrogram image, and Claude reads those.</p></details>
         <details><summary>What does hear give Claude?</summary><p>A report Claude can read: a transcript with a time and confidence for every word, speaker labels (S1, S2…) with each speaker's share of the talking, delivery marks for loudness, pitch, pauses, pace and rising or falling line ends, emotion guesses when they're confident, labels for sounds like music, laughter and applause, and a spectrogram image of the audio.</p></details>
-        <details><summary>How does hear work?</summary><p>It runs five local stages, each in its own process: speech-to-text with Whisper large-v3 turbo first, then loudness and pitch with librosa, speaker fingerprints with WeSpeaker, emotion with emotion2vec+ and sound labels with CLAP together. The four light stages use less memory combined than Whisper, so peak memory is Whisper's, not the sum.</p></details>
+        <details><summary>How does hear work?</summary><p>It runs five local stages, each in its own process: speech-to-text with Whisper large-v3 turbo first, then loudness and pitch with librosa, speaker fingerprints with WeSpeaker, emotion with emotion2vec+ and sound labels with CLAP and CED together. The four light stages use less memory combined than Whisper, so peak memory is Whisper's, not the sum.</p></details>
         <details><summary>What do the marks in the report mean?</summary><p>**word** is clearly louder, (word) is clearly quieter, ↑ and ↓ mean pitch well above or below that speaker's normal, ↗ and ↘ mean a line ends rising or falling, ‖0.8s‖ is a pause, [?] means Whisper was unsure, and {sounds happy 0.9} is an emotion guess.</p></details>
         <details><summary>Does hear send my audio to the cloud?</summary><p>No. Every model runs on your own computer. The only network use is the one-time download of about 2.5 GB of models.</p></details>
         <details><summary>Which operating systems does hear support?</summary><p>macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows, Linux and Intel Macs use faster-whisper, on an NVIDIA GPU when CUDA 12 and cuDNN 9 are installed, otherwise on the CPU. Windows and Linux support is in beta.</p></details>

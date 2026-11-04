@@ -19,6 +19,10 @@ from pathlib import Path
 STAGES = Path(__file__).resolve().parent / "stages"
 QUIET_LABELS = {"neutral", "other", "unknown"}
 NOT_EVENTS = {"speech", "silence", "music", "singing"}
+# CED (AudioSet) labels that are not events worth listing: speech itself, silence, and music (CLAP covers music)
+CED_SKIP = {"Speech", "Speech synthesizer", "Narration, monologue", "Conversation", "Male speech, man speaking",
+            "Female speech, woman speaking", "Child speech, kid speaking", "Silence", "Music", "Inside, small room",
+            "Inside, large room or hall", "Outside, urban or manmade", "Outside, rural or natural"}
 
 
 def start(stage, *args):
@@ -75,17 +79,19 @@ def mark(w, ref_db, ref_hz):
 
 
 def sound_spans(sounds):
-    """Collapse per-second CLAP windows into spans of possible non-speech events."""
-    spans = []
+    """Collapse per-second windows into spans of possible non-speech events (CED labels; CLAP for older runs)."""
+    spans, open_ = [], {}   # open_: the latest span per label, so a label that alternates with another still joins up
     for w in sounds["windows"]:
-        for label, p in w["top"]:
-            if label in NOT_EVENTS or p < 0.2:
+        ced = "events" in w
+        for label, p in (w["events"] if ced else w["top"]):
+            if (label in CED_SKIP or p < 0.1) if ced else (label in NOT_EVENTS or p < 0.2):
                 continue
-            last = spans[-1] if spans else None
-            if last and last["label"] == label and w["t"] <= last["end"]:
+            last = open_.get(label)
+            if last and w["t"] <= last["end"]:
                 last["end"], last["p"] = w["t"] + sounds["win"], max(last["p"], p)
             else:
-                spans.append({"label": label, "start": w["t"], "end": w["t"] + sounds["win"], "p": p})
+                open_[label] = {"label": label, "start": w["t"], "end": w["t"] + sounds["win"], "p": p}
+                spans.append(open_[label])
     loud_music = [w for w in sounds["windows"] if w["music"] >= 0.5]
     return sorted(spans, key=lambda s: s["start"]), loud_music
 
@@ -132,13 +138,13 @@ def render(out, info):
     if sounds:
         spans, loud = sound_spans(sounds)
         bed = sum(w["music"] >= 0.2 for w in sounds["windows"]) / max(1, len(sounds["windows"]))
-        L.append("## Sounds (CLAP guesses, not certain)")
+        L.append("## Sounds (model guesses, not certain)")
         L.append(f"- background music: {'likely' if bed >= 0.3 else 'possible' if bed >= 0.1 else 'not detected'}"
                  f" ({bed:.0%} of the clip)")
         if loud:
             L.append("- music or singing prominent at: " + ", ".join(ts(w["t"]) for w in loud))
         for s in spans:
-            L.append(f"- [{ts(s['start'])}–{ts(s['end'])}] possibly {s['label']} ({s['p']:.2f})")
+            L.append(f"- [{ts(s['start'])}–{ts(s['end'])}] possibly {s['label'].lower()} ({s['p']:.2f})")
         L.append("")
 
     L += ["## Timeline", "",

@@ -8,7 +8,7 @@ Claude has no audio input. hear works around that by running five local stages (
 - Speakers: S1, S2… per line from a voice fingerprint (WeSpeaker ResNet34), with each speaker's share of talking time.
 - Delivery marks: **louder**, (quieter), pitch ↑ ↓ relative to the speaker, line ends rising ↗ or falling ↘, pauses ‖0.8s‖, pace in words per minute, [?] for unsure words.
 - Emotion: a tone guess per line when confident (emotion2vec+).
-- Sounds: music, laughter, applause, whooshes and more, in 2-second windows every second (CLAP, zero-shot).
+- Sounds: music share (CLAP, zero-shot) and events such as beeps, laughter, applause and noise (CED, 527 AudioSet labels), in 2-second windows every second.
 - Spectrogram: an image of the sound for anything the labels miss.
 
 ## Install
