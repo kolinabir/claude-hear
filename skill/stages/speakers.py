@@ -59,4 +59,8 @@ time_by = {}
 for i, s in enumerate(segs):
     time_by[labels[i]] = time_by.get(labels[i], 0) + s["words"][-1]["end"] - s["words"][0]["start"]
 rank = {k: f"S{n + 1}" for n, k in enumerate(sorted(time_by, key=time_by.get, reverse=True))}
-save(out, "speakers", [{"speaker": rank[labels[i]], "similarity": round(sims[i], 2)} for i in range(len(segs))], t0)
+# "sims": this line against every speaker's voice, so the report can fold a doubtful speaker back into the main one
+unit = [c / np.linalg.norm(c) for c in centroids]
+save(out, "speakers", [{"speaker": rank[labels[i]], "similarity": round(sims[i], 2),
+                        "sims": {rank[k]: round(float(unit[k] @ embs[i]), 2) for k in range(len(centroids))}}
+                       for i in range(len(segs))], t0)

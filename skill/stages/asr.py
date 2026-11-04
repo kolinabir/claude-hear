@@ -27,11 +27,20 @@ def transcribe_mlx(y, model, language):
     import mlx_whisper
 
     mx.set_cache_limit(0)  # measured on a 40 s clip: peak 3.19 -> 2.43 GB for ~2-3 s more
+    prob = None
+    if not language:  # how sure is the detection? (Bengali speech comes out as Gujarati at ~0.45: the report must say so)
+        from mlx_whisper.audio import log_mel_spectrogram, pad_or_trim
+        from mlx_whisper.decoding import detect_language
+        from mlx_whisper.transcribe import ModelHolder
+        m = ModelHolder.get_model(model, mx.float16)  # the same cached copy transcribe() uses
+        _, probs = detect_language(m, pad_or_trim(log_mel_spectrogram(mx.array(y[:16000 * 30]), n_mels=m.dims.n_mels), 3000, axis=-2).astype(mx.float16))
+        probs = probs[0] if isinstance(probs, list) else probs
+        language, prob = max(probs, key=probs.get), round(float(max(probs.values())), 2)
     r = mlx_whisper.transcribe(y, path_or_hf_repo=model, word_timestamps=True, language=language)
     segments = [{"start": s["start"], "end": s["end"],
                  "words": [{k: w[k] for k in ("word", "start", "end", "probability")} for w in s.get("words", [])]}
                 for s in r["segments"]]
-    return r.get("language"), segments, mx.get_peak_memory()
+    return r.get("language"), prob, segments, mx.get_peak_memory()
 
 
 def transcribe_fw(y, model, language):
@@ -49,15 +58,36 @@ def transcribe_fw(y, model, language):
                          "words": [{"word": w.word, "start": w.start, "end": w.end, "probability": w.probability}
                                    for w in (s.words or [])]}
                         for s in segs]  # the generator runs the model here, so CUDA errors surface inside the try
-            return info.language, segments, 0
+            return info.language, (None if language else round(info.language_probability, 2)), segments, 0
         except RuntimeError as e:  # CUDA libraries missing (common on Windows): fall back to CPU
             if device == "cpu":
                 raise
             print(f"GPU failed ({e}); using CPU", file=sys.stderr)
 
 
+LONG = 10.0  # Whisper sometimes returns one 20-30 s "segment" (often in Bengali); cut it at its widest word gaps
+
+
+def split_long(segments):
+    """Segments over LONG seconds are cut at their widest word gap, repeatedly, so one line = one phrase.
+    Even a pause-free wall of words is cut: the widest gap is the most phrase-like place available."""
+    out = []
+    for s in segments:
+        stack = [s["words"]]
+        while stack:
+            ws = stack.pop()
+            if len(ws) < 2 or ws[-1]["end"] - ws[0]["start"] <= LONG:
+                out.append(ws)
+                continue
+            gaps = [(ws[i + 1]["start"] - ws[i]["end"], i) for i in range(len(ws) - 1)]
+            g, i = max(gaps)
+            stack += [ws[i + 1:], ws[:i + 1]]
+    return [{"start": ws[0]["start"], "end": ws[-1]["end"], "words": ws} for ws in out]
+
+
 if __name__ == "__main__":
     out, language, model = Path(sys.argv[1]), sys.argv[2] or None, sys.argv[3]
     t0 = time.time()
-    lang, segments, gpu = (transcribe_mlx if APPLE else transcribe_fw)(load(out), model, language)
-    save(out, "asr", {"language": lang, "segments": [s for s in segments if s["words"]]}, t0, gpu)
+    lang, prob, segments, gpu = (transcribe_mlx if APPLE else transcribe_fw)(load(out), model, language)
+    segments = split_long([s for s in segments if s["words"]])
+    save(out, "asr", {"language": lang, "language_prob": prob, "segments": segments}, t0, gpu)

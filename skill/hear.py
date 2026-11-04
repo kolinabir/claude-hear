@@ -116,7 +116,8 @@ def speech_evidence(sounds, a, b):
     if not sounds:
         return True
     hits = [w for w in sounds["windows"] if w["t"] < b and w["t"] + sounds["win"] > a]
-    return not hits or any(p >= 0.15 for w in hits for label, p in w["top"] if label == "speech")
+    speech = lambda w: w["speech"] if "speech" in w else dict(w["top"]).get("speech", 0)
+    return not hits or any(speech(w) >= 0.15 for w in hits)
 
 
 def ranges(times, win):
@@ -145,6 +146,38 @@ def sound_lines(sounds):
     return L + [""]
 
 
+def fold_doubtful_speakers(segs, speakers, sounds):
+    """A voice fingerprint taken under loud music or from a very short line is unreliable. A speaker with under 10 %
+    of the talk whose every line is like that, and whose lines still resemble the main speaker, is almost always the
+    main speaker again (seen on reels: one intro line over the music became "S2"). Fold it back and renumber."""
+    if not speakers or "sims" not in speakers[0]:
+        return
+    dur = lambda s: s["words"][-1]["end"] - s["words"][0]["start"]
+    time_by = {}
+    for s, k in zip(segs, speakers):
+        time_by[k["speaker"]] = time_by.get(k["speaker"], 0) + dur(s)
+    if len(time_by) < 2:
+        return
+    main, total = max(time_by, key=time_by.get), sum(time_by.values()) or 1
+
+    def music(s):
+        a, b = s["words"][0]["start"], s["words"][-1]["end"]
+        return max([w["music"] for w in sounds["windows"] if w["t"] < b and w["t"] + sounds["win"] > a] or [0]) if sounds else 0
+
+    for spk, t in time_by.items():
+        if spk == main or t / total >= 0.1:
+            continue
+        lines = [(s, k) for s, k in zip(segs, speakers) if k["speaker"] == spk]
+        # under a second of speech in total can't establish a voice at all; otherwise every line must be doubtful
+        if t < 1.0 or all((music(s) >= 0.8 or dur(s) < 1.5) and k["sims"].get(main, 0) >= 0.55 for s, k in lines):
+            for _, k in lines:
+                k["speaker"] = main
+    left = sorted({k["speaker"] for k in speakers}, key=lambda n: -time_by[n])
+    rename = {old: f"S{i + 1}" for i, old in enumerate(left)}
+    for k in speakers:
+        k["speaker"] = rename[k["speaker"]]
+
+
 def render(out, info):
     asr = load(out, "asr")
     segs = asr["segments"]
@@ -163,6 +196,7 @@ def render(out, info):
     dropped = keep.count(False)
     segs, speakers, emotions = ([x for x, k in zip(xs, keep) if k] for xs in (segs, speakers, emotions))
     words = [w for s in segs for w in s["words"]]
+    fold_doubtful_speakers(segs, speakers, sounds)
     if not words:
         L = [f"# Hearing report: {info['file']}", "", f"- duration: {info['duration']:.1f} s · no speech found"
              + (f" ({dropped} Whisper line{'s' if dropped > 1 else ''} dropped as likely hallucination)" if dropped else ""), ""]
@@ -186,7 +220,10 @@ def render(out, info):
 
     span = words[-1]["end"] - words[0]["start"] if len(words) > 1 else 0
     L = [f"# Hearing report: {info['file']}", "",
-         f"- duration: {info['duration']:.1f} s · language: {asr.get('language')} · words: {len(words)}"
+         f"- duration: {info['duration']:.1f} s · language: {asr.get('language')}"
+         + (f" (Whisper only {asr['language_prob']:.0%} sure: if the script looks wrong, re-run with --language)"
+            if asr.get("language_prob") is not None and asr["language_prob"] < 0.7 else "")
+         + f" · words: {len(words)}"
          f" · average pace: {round(len(words) / span * 60) if span else 0} wpm",
          f"- unsure words [?]: {sum(w['probability'] < 0.5 for w in words)}"
          + (f" · {dropped} Whisper line{'s' if dropped > 1 else ''} dropped as likely hallucination" if dropped else "")

@@ -21,7 +21,7 @@ uv run --script <this skill's base directory>/hear.py "<file>" --out "<scratchpa
 | (default, full) | almost always | ~15–30 s |
 | `--fast` | only the words and delivery matter (no speakers, sounds, emotion) | ~10–25 s |
 | `--separate` | loud music drowns the speech and the report shows many `[?]` | +3–4 min |
-| `--language en` | the language is detected wrong | — |
+| `--language bn` | the header says Whisper is unsure of the language, or the script is wrong for the audio (Bengali often comes out as Gujarati or Hindi script: force `bn`) | — |
 
 - On a PC without an NVIDIA GPU, transcription runs on the CPU and takes roughly the clip's length or more; run long files in the background.
 - Whisper runs first on its own, then the four light stages run together; their memory adds up to less than Whisper's, so peak memory is ~2.4 GB.

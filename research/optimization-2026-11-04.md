@@ -87,9 +87,33 @@ the Minecraft reel keeps "snicker (0.56), chuckle (0.36)"; the speech-only test 
 Not fixed: a 4 % "S2" on one reel and a 60/40 split on a single-voice WhatsApp video (130 vs 134 Hz) are
 probably the same person over music; the faint test beep (0.12) now falls under the event threshold.
 
+## Round 4: speaker split, Bengali, long lines
+
+- **Speaker fold.** The speakers stage now saves each line's similarity to every speaker; the report folds a
+  speaker with under 10 % of the talk back into the main voice when every one of its lines is doubtful (under
+  loud music, CLAP music ≥ 0.8, or shorter than 1.5 s) and still resembles the main voice (cosine ≥ 0.55), or
+  when it has under a second of speech in total. Fixes the reel whose intro line over the music was "S2" (the
+  line's similarity to S1 was 0.74 against a 0.75 bar) and the phantom speaker born from a hallucinated line.
+  The 60/40 split on the WhatsApp video turned out to be real: centroid cosine 0.48, and the second voice speaks
+  with no music at the end (someone talking over a screen recording). Correct two- and three-speaker clips
+  (noah, ears, two-voices, mixed) are unchanged; noah's real second speaker sits at centroid cosine 0.83, which is
+  why a plain similarity threshold could never separate these cases.
+- **Bengali.** Two Bengali clips: Whisper detects Gujarati at 0.42–0.54 (Bengali 0.06–0.10) on every 30 s window
+  and writes Bengali sounds in Gujarati script. Decoding in each candidate language and comparing avg_logprob
+  does not help either (gu −0.10 vs bn −0.16). With `--language bn` the transcript is readable Bengali. So:
+  the asr stage records the detection probability, the header says "Whisper only 45 % sure: re-run with
+  --language" under 0.7, and SKILL.md tells Claude to force `bn` when the script is wrong. English clips detect
+  at 1.00.
+- **Long lines.** Whisper returned 20–30 s segments (Bengali, fast narration). The asr stage now cuts any segment
+  over 10 s at its widest word gap, repeatedly. Facebook's longest line went 27.7 → 8.7 s. What remains long is
+  Whisper's own doing: in Bengali it sometimes stretches one word over 12 s, and a one-word line can't be cut.
+  Whisper's temperature fallback also makes the garbage tail of the WhatsApp video differ run to run (2 vs 12
+  dropped lines, 14 vs 30 unsure words), so counts on hallucinated audio are not stable.
+- The sounds stage stores CLAP's speech probability per window so the hallucination check no longer depends on
+  "speech" making the top 3.
+
 ## Still possible
 
-- Speaker split under music (the two cases above): untested ideas, run separation only on the doubtful lines.
 - CPU-only Windows/Linux: not measured here; the same torch removal applies.
 - CED on real music: untested (the test bed is synthetic sines, which it calls "sine wave" / "synthesizer").
 

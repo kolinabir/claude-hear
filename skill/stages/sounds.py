@@ -119,5 +119,6 @@ if __name__ == "__main__":
         top = np.argsort(p)[::-1][:3]
         windows.append({"t": float(s), "top": [[LABELS[k], round(float(p[k]), 2)] for k in top],
                         "events": [[e.name, round(float(e.prob), 2)] for e in tagger.compute(st, 3)],
+                        "speech": round(float(p[LABELS.index("speech")]), 2),
                         "music": round(float(sum(p[LABELS.index(m)] for m in MUSIC)), 2)})
     save(out, "sounds", {"windows": windows, "win": WIN}, t0)
