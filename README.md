@@ -54,7 +54,7 @@ git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
 powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm
 ```
 
-`--warm` / `-Warm` downloads the models now (~3.5 GB, a few minutes). Without it, the first listen does it.
+`--warm` / `-Warm` downloads the models now (~2.5 GB, a few minutes). Without it, the first listen does it.
 
 If the repo is public, the same in one line:
 
@@ -118,25 +118,26 @@ If PowerShell blocks the script, run it as `powershell -ExecutionPolicy Bypass -
 ```text
 your file ─ ffmpeg ─▶ 16 kHz audio
                        │
-  1. sounds    CLAP, 2 s windows        → music / laughter / effects
-  2. asr       Whisper (MLX / faster-whisper) → words + timings + confidence
-  3. prosody   loudness + pyin pitch    → **loud** (quiet) ↑ ↓ ↗ ↘
-  4. speakers  voice fingerprint/line   → S1 / S2
-  5. emotion   emotion2vec+ per line    → {sounds happy 0.9}
+  1. asr       Whisper (MLX / faster-whisper) → words + timings + confidence
+  then, together:
+  2. prosody   loudness + pyin pitch    → **loud** (quiet) ↑ ↓ ↗ ↘
+  3. speakers  voice fingerprint/line   → S1 / S2
+  4. emotion   emotion2vec+ per line    → {sounds happy 0.9}
+  5. sounds    CLAP (ONNX), 2 s windows → music / laughter / effects
                        │
              hearing.md + spectrogram.png + words.json
 ```
 
 Each stage is a separate [`uv` script](https://docs.astral.sh/uv/guides/scripts/) with its own dependencies.
-Stages run **one at a time** and exit when done, so their memory is freed before the next starts.
+Whisper runs first on its own; the four light stages then run **together** in their own processes. Their memory adds up to less than Whisper's, so the peak stays at Whisper.
 
 ## Resources
 
 | | |
 |---|---|
 | Peak RAM | **~2.4 GB** (Whisper, on every system; every other stage is lower) |
-| Models | ~3.5 GB (+0.9 GB only if you use `--separate`) |
-| Python packages | ~3–4 GB in uv's cache (torch, MLX or faster-whisper, librosa…) |
+| Models | ~2.5 GB (+0.9 GB only if you use `--separate`) |
+| Python packages | ~2–3 GB in uv's cache (MLX or faster-whisper, onnxruntime, librosa…); torch only if you use `--separate` |
 | Speed | ~1.2× the clip length on an M4; Whisper alone took 34 s for a 40 s clip on the M4's CPU (faster-whisper int8, all cores) |
 
 ## Limits

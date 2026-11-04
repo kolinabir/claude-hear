@@ -1,5 +1,6 @@
 ---
 name: hear
+allowed-tools: Bash(uv run --script ${CLAUDE_SKILL_DIR}/hear.py *)
 description: Listen to an audio or video file (mp3, wav, m4a, aac, mp4, mov, webm...). Transcribes speech with word timings and reports who spoke, how it was said (loudness, pitch, pauses, pace, unclear words, emotion guesses), and non-speech sounds (music, laughter, effects), plus a spectrogram image. Use when the user asks to listen to, hear, transcribe, or judge the tone, delivery, speakers or audio of a file.
 ---
 
@@ -17,14 +18,14 @@ uv run --script <this skill's base directory>/hear.py "<file>" --out "<scratchpa
 
 | Option | Use when | Cost (40 s clip, warm, Apple M4) |
 |---|---|---|
-| (default, full) | almost always | ~45–50 s |
-| `--fast` | only the words and delivery matter (no speakers, sounds, emotion) | ~30 s |
+| (default, full) | almost always | ~30 s |
+| `--fast` | only the words and delivery matter (no speakers, sounds, emotion) | ~25 s |
 | `--separate` | loud music drowns the speech and the report shows many `[?]` | +3–4 min |
 | `--language en` | the language is detected wrong | — |
 
 - On a PC without an NVIDIA GPU, transcription runs on the CPU and takes roughly the clip's length or more; run long files in the background.
-- Stages run one at a time in separate processes, so peak memory is ~2.4 GB (Whisper) however many stages run.
-- First run downloads models (~3.5 GB in total) and Python packages; it takes several minutes. Later runs are fast.
+- Whisper runs first on its own, then the four light stages run together; their memory adds up to less than Whisper's, so peak memory is ~2.4 GB.
+- First run downloads models (~2.5 GB in total) and Python packages; it takes several minutes. Later runs are fast.
 - Files over ~5 minutes (or ~2 minutes on a CPU-only PC): run it in the background.
 
 ## Read the output

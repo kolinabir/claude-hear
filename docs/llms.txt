@@ -2,7 +2,7 @@
 
 > hear is a free Claude Code skill that lets Claude listen to audio and video files. It turns a file into a text report Claude can read (who spoke, what they said, and how they said it) plus a spectrogram image. Everything runs locally on macOS, Windows and Linux; audio never leaves the machine.
 
-Claude has no audio input. hear works around that by running five local stages one at a time and writing their results as compact text:
+Claude has no audio input. hear works around that by running five local stages (Whisper first, the lighter four together) and writing their results as compact text:
 
 - Transcript: every word with start, end and confidence (Whisper large-v3 turbo; MLX on Apple Silicon, faster-whisper elsewhere).
 - Speakers: S1, S2… per line from a voice fingerprint (WeSpeaker ResNet34), with each speaker's share of talking time.
@@ -19,8 +19,8 @@ Claude has no audio input. hear works around that by running five local stages o
 
 ## Facts
 
-- Peak RAM: about 2.4 GB (stages run one at a time).
-- Disk: about 3.5 GB of models plus 3–4 GB of Python packages.
+- Peak RAM: about 2.4 GB (Whisper runs first on its own; the lighter stages then run together).
+- Disk: about 2.5 GB of models plus 2–3 GB of Python packages.
 - Speed: a 40-second clip takes about 45 s on an Apple M4 (about 30 s with `--fast`). Without Apple Silicon or an NVIDIA GPU, transcription takes roughly the clip's length or more.
 - Formats: anything ffmpeg reads (mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv, webm).
 - Price: free. No API keys.

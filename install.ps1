@@ -1,6 +1,6 @@
 # Install the "hear" skill for Claude Code on Windows.
 #   .\install.ps1          copy the skill (installs ffmpeg and uv if missing)
-#   .\install.ps1 -Warm    also download all models now (~3.5 GB) by listening to a test tone
+#   .\install.ps1 -Warm    also download all models now (~2.5 GB) by listening to a test tone
 # Run it from a clone, or via irm | iex: it then clones to ~\.claude-hear (override with $env:CLAUDE_HEAR_DIR).
 # Run it again to update.
 param([switch]$Warm)
@@ -60,7 +60,7 @@ Get-ChildItem $SkillDir -Recurse -Directory -Filter "__pycache__" | Remove-Item 
 Write-Host "$SkillDir (rerun this script after pulling updates)"
 
 if ($Warm) {
-  Step "Downloading models (~3.5 GB, a few minutes, once)"
+  Step "Downloading models (~2.5 GB, a few minutes, once)"
   $tmp = Join-Path ([IO.Path]::GetTempPath()) ("hear-" + [guid]::NewGuid())
   New-Item -ItemType Directory $tmp | Out-Null
   ffmpeg -v error -f lavfi -i "sine=frequency=220:duration=3" (Join-Path $tmp "tone.wav")
@@ -69,4 +69,4 @@ if ($Warm) {
 }
 
 Write-Host "`nInstalled. Open Claude Code and ask: `"listen to C:\Users\you\Downloads\clip.mp4`"" -ForegroundColor Green
-if (-not $Warm) { Write-Host "  The first listen downloads ~3.5 GB of models. Run install.ps1 -Warm to do it now." }
+if (-not $Warm) { Write-Host "  The first listen downloads ~2.5 GB of models. Run install.ps1 -Warm to do it now." }

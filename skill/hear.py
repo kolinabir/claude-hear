@@ -5,8 +5,8 @@
 # ///
 """Turn an audio/video file into text Claude can "hear".
 
-Runs each analysis stage as its own process, one at a time, so peak RAM is the biggest stage
-(~2.4 GB, Whisper) instead of the sum of all models.
+Runs each analysis stage as its own process: Whisper first, then the four light stages together.
+Their memory adds up to less than Whisper's, so peak RAM stays ~2.4 GB.
 """
 import argparse
 import json
@@ -21,17 +21,26 @@ QUIET_LABELS = {"neutral", "other", "unknown"}
 NOT_EVENTS = {"speech", "silence", "music", "singing"}
 
 
+def start(stage, *args):
+    return stage, time.time(), subprocess.Popen(["uv", "run", "--quiet", "--script", str(STAGES / f"{stage}.py"), *map(str, args)],
+                                               stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
+
+
+def wait(started, required=False):
+    """Wait for stages started with start(); a failed optional stage only prints its error."""
+    for stage, t, p in started:
+        err = p.communicate()[1]
+        if p.returncode:
+            msg = f"stage {stage} failed:\n" + "\n".join(err.strip().splitlines()[-8:])
+            if required:
+                sys.exit(msg)
+            print(msg, file=sys.stderr)
+        else:
+            print(f"  {stage}: {time.time() - t:.0f}s", file=sys.stderr)
+
+
 def run(stage, *args, required=False):
-    t = time.time()
-    p = subprocess.run(["uv", "run", "--quiet", "--script", str(STAGES / f"{stage}.py"), *map(str, args)],
-                       capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if p.returncode:
-        msg = f"stage {stage} failed:\n" + "\n".join(p.stderr.strip().splitlines()[-8:])
-        if required:
-            sys.exit(msg)
-        print(msg, file=sys.stderr)
-    else:
-        print(f"  {stage}: {time.time() - t:.0f}s", file=sys.stderr)
+    wait([start(stage, *args)], required)
 
 
 def load(out, name):
@@ -203,13 +212,12 @@ def main():
 
     if a.separate:
         run("separate", src, out)
-    if not a.fast:
-        run("sounds", src, out)
     run("asr", out, a.language, a.model, required=True)
-    run("prosody", out)
+    # the rest only need asr.json; together they use less RAM than Whisper did, so run them at once
+    rest = [start("prosody", out)]
     if not a.fast:
-        run("speakers", out)
-        run("emotion", out)
+        rest += [start("speakers", out), start("emotion", out), start("sounds", src, out)]
+    wait(rest)
 
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-lavfi",
                     "showspectrumpic=s=1600x512:legend=1:scale=log:fscale=log", str(out / "spectrogram.png")])
