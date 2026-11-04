@@ -18,8 +18,8 @@ uv run --script <this skill's base directory>/hear.py "<file>" --out "<scratchpa
 
 | Option | Use when | Cost (40 s clip, warm, Apple M4) |
 |---|---|---|
-| (default, full) | almost always | ~30 s |
-| `--fast` | only the words and delivery matter (no speakers, sounds, emotion) | ~25 s |
+| (default, full) | almost always | ~15–30 s |
+| `--fast` | only the words and delivery matter (no speakers, sounds, emotion) | ~10–25 s |
 | `--separate` | loud music drowns the speech and the report shows many `[?]` | +3–4 min |
 | `--language en` | the language is detected wrong | — |
 

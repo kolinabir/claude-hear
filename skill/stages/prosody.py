@@ -4,14 +4,16 @@
 # ///
 """Per-word loudness (dB) and pitch (Hz).
 
-Pitch is pyin (probabilistic yin with voicing), run only on speech lines, 4 at a time.
-Tested against penn (FCNF0++): same median pitch, but penn needed torch, 1.8 GB and was slower.
+Pitch is pyin (probabilistic yin with voicing), run only on speech lines, in this process.
+Tested: a 4-worker pool was no faster (2.0 s either way on 44 s of speech) and its extra processes
+slowed the stages that now run alongside. penn (FCNF0++) gave the same median pitch but needed torch and 1.8 GB.
+SwiftF0 was 30x faster but no more accurate against Praat on real speech, and it moved the ↑/↓ marks.
 """
 import sys
 import time
-from multiprocessing import Pool
 from pathlib import Path
 
+import librosa
 import numpy as np
 
 from common import SR, load, read, save
@@ -20,7 +22,6 @@ HOP = 160  # 10 ms
 
 
 def pitch(chunk):
-    import librosa
     if chunk.size < 2048:
         return np.full(chunk.size // HOP + 1, np.nan)
     # keep the default resolution: coarser ones break voicing (0.25 st found pitch on 15 of 163 words, 0.1 on 79)
@@ -34,8 +35,7 @@ if __name__ == "__main__":
     y = load(out)
     segs = read(out, "asr")["segments"]
     spans = [(int(s["words"][0]["start"] * SR), int(s["words"][-1]["end"] * SR) + HOP) for s in segs]
-    with Pool(4) as pool:
-        f0s = pool.map(pitch, [y[a:b] for a, b in spans])
+    f0s = [pitch(y[a:b]) for a, b in spans]
 
     frames = np.lib.stride_tricks.sliding_window_view(np.pad(y, (200, 200)), 400)[::HOP]
     db = 20 * np.log10(np.sqrt((frames ** 2).mean(axis=1)) + 1e-9)

@@ -50,10 +50,23 @@ still lower. Cutting pyin's 4-process pool would help more, see below.
 - **emotion2vec+ base** (373 MB): would save ~0.5 GB RAM; no published accuracy against the large model.
 - **Batching CLAP windows**: no faster on CPU, more RAM. Per-window stays.
 
+## Round 2 (same day)
+
+- **pyin pool dropped.** With a warm numba cache, in-process, Pool(2) and Pool(4) all take 2.0 s on 44 s of
+  speech (1.8 s on 17 s); the pool only added four processes to the ones already sharing the CPU. Results are
+  identical (allclose). Full runs after this, on a quieter machine: 44 s clip 13.7 s, 17 s clip 9.2 s, all four
+  reports still byte-identical to the baseline. (Some of that gain is the quieter machine, not the change.)
+- **sherpa-onnx CED-mini audio tagger tried** (10 MB int8 ONNX, 527 AudioSet labels, 49 MB download): 43 windows
+  in 0.18 s, 0.11 GB. Side by side with CLAP on the 44 s scene it caught what CLAP missed: the beep ("Beep,
+  bleep" / "Sine wave" at 27–28 s), the noise burst ("White noise" at 33–35 s), the gap ("Silence"), and it
+  labelled every voice "Speech synthesizer", which they are (macOS `say`). CLAP called a woman speaking
+  "singing 0.6" at 24 s. CED did not flag the synthetic sine "music bed" as Music (it said Sine wave /
+  Synthesizer), so its music detection on real music is untested here. Not applied: it changes the Sounds
+  section, so it needs a decision and a look at real-music clips first.
+
 ## Still possible
 
-- pyin: drop the 4-process pool (each worker pays librosa import + numba JIT); measure 1 vs 2 workers.
-- sherpa-onnx CED audio tagger (45 MB, fixed 527 AudioSet labels) as a CLAP alternative; untested.
+- CED alongside CLAP in the sounds stage (+0.2 s, +10 MB): CED for events, CLAP kept for the music share.
 - CPU-only Windows/Linux: not measured here; the same torch removal applies.
 
 ## Claude Code docs check (same day)
