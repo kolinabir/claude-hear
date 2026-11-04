@@ -27,6 +27,9 @@
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%23020817'/><g fill='%2383fd80'><rect x='7' y='12' width='3' height='8' rx='1.5'/><rect x='12' y='7' width='3' height='18' rx='1.5'/><rect x='17' y='10' width='3' height='12' rx='1.5'/><rect x='22' y='13' width='3' height='6' rx='1.5'/></g></svg>">
 <link rel="sitemap" type="application/xml" href="sitemap.xml">
+<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<link rel="modulepreload" href="mascot.js">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -79,6 +82,7 @@
         {"@type": "Question", "name": "How much RAM and disk does hear need?", "acceptedAnswer": {"@type": "Answer", "text": "About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages."}},
         {"@type": "Question", "name": "What file types can hear listen to?", "acceptedAnswer": {"@type": "Answer", "text": "Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm."}},
         {"@type": "Question", "name": "How long does it take?", "acceptedAnswer": {"@type": "Answer", "text": "On an Apple M4, a 40-second clip takes about 45 to 50 seconds for the full report and about 30 seconds with --fast. Without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more."}},
+        {"@type": "Question", "name": "Is hear made by Anthropic?", "acceptedAnswer": {"@type": "Answer", "text": "No. hear is an independent, free skill that works with Claude Code. Claude and Claude Code are made by Anthropic; hear just gives Claude Code a way to listen to audio and video."}},
         {"@type": "Question", "name": "Can it tell who is speaking?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It labels each line S1, S2 and so on from a voice fingerprint and reports each speaker's share of the talking. Very short lines and lines over loud music are the least reliable, and the report flags those."}}
       ]
     }
@@ -140,7 +144,30 @@ code, .mono, pre { font-family: "JetBrains Mono", ui-monospace, monospace; }
 .eyebrow { display: inline-flex; align-items: center; gap: 10px; font: 500 13px "JetBrains Mono", monospace; letter-spacing: .04em; color: var(--text-2); padding: 7px 14px; border: 1px solid var(--line-2); border-radius: 999px; background: rgba(2, 8, 23, .35); backdrop-filter: blur(6px); }
 .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--jade); box-shadow: 0 0 0 0 rgba(131, 253, 128, .7); animation: live 1.8s infinite; }
 @keyframes live { 70% { box-shadow: 0 0 0 9px rgba(131, 253, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(131, 253, 128, 0); } }
-h1 { font-size: clamp(52px, 9.2vw, 132px); line-height: .92; letter-spacing: -.055em; font-weight: 600; margin: 26px 0 0; }
+h1 { font-size: clamp(50px, 7.2vw, 104px); line-height: .92; letter-spacing: -.055em; font-weight: 600; margin: 26px 0 0; }
+.hero-top { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 24px; align-items: center; }
+.hero-copy .lede { margin-top: 28px; }
+.hero-copy .facts { justify-content: start; margin-top: 26px; }
+.mascot-wrap { position: relative; width: 100%; max-width: 540px; aspect-ratio: 1; justify-self: center; }
+.mascot-wrap img, .mascot-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mascot-wrap img { object-fit: contain; transition: opacity .5s; }
+#mascot { opacity: 0; transition: opacity .6s; cursor: pointer; }
+.mascot-wrap.live #mascot { opacity: 1; }
+.mascot-wrap.live img { opacity: 0; }
+.caption { position: absolute; left: 50%; bottom: 3%; transform: translate(-50%, 8px); max-width: 94%; padding: 9px 16px; border-radius: 999px; background: rgba(2, 8, 23, .72); border: 1px solid var(--line-2); backdrop-filter: blur(8px); font: 13px "JetBrains Mono", monospace; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
+.caption.on { opacity: 1; transform: translate(-50%, 0); }
+.caption .S1 { color: var(--ocean); } .caption .S2 { color: var(--jade); }
+.keyrow { display: flex; align-items: center; gap: 18px; margin-top: 34px; }
+.key { appearance: none; border: 0; padding: 0 0 6px; background: none; cursor: pointer; border-radius: 18px; }
+.key .cap { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; width: 104px; height: 88px; padding: 12px 14px; border-radius: 18px; color: var(--text);
+  background: linear-gradient(180deg, #16306a, #0a1a3e); border: 1px solid rgba(124, 176, 255, .32);
+  box-shadow: 0 6px 0 #030b22, 0 18px 34px -10px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .14); transition: transform .08s, box-shadow .08s; }
+.key .cap svg { width: 22px; height: 22px; color: var(--jade); align-self: flex-end; }
+.key .cap b { font: 600 15px "Instrument Sans", sans-serif; }
+.key:hover .cap { border-color: rgba(131, 253, 128, .5); }
+.key.down .cap, .key:active .cap { transform: translateY(5px); box-shadow: 0 1px 0 #030b22, 0 8px 18px -10px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .14); }
+.key-hint { font-size: 14px; color: var(--text-2); line-height: 1.5; }
+kbd { font: 500 12px "JetBrains Mono", monospace; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line-2); border-bottom-width: 2px; background: var(--panel); color: var(--text); }
 h1 .lit { color: var(--jade); display: inline-block; }
 h1 .lit span { display: inline-block; animation: hear .9s cubic-bezier(.2, .9, .3, 1.3) both; }
 @keyframes hear { from { transform: translateY(.18em) scaleY(.6); opacity: 0; } }
@@ -318,6 +345,7 @@ details p { margin: -6px 0 22px; color: var(--text-2); max-width: 64ch; }
 
 footer { padding: 40px 0 56px; color: var(--text-3); font-size: 14px; }
 footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
+footer small { font-size: 12.5px; color: var(--text-3); }
 footer a:hover { color: var(--text); }
 
 /* reveal */
@@ -335,7 +363,8 @@ footer a:hover { color: var(--text); }
   .pipe { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .numbers { grid-template-columns: repeat(2, 1fr); }
   .numbers div:nth-child(2) { border-right: 0; } .numbers div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-  .plats, .install, .faq, .sec-head, .hero-row { grid-template-columns: minmax(0, 1fr); }
+  .plats, .install, .faq, .sec-head, .hero-top { grid-template-columns: minmax(0, 1fr); }
+  .mascot-wrap { order: -1; max-width: 380px; margin-bottom: -24px; }
   .facts { justify-content: start; }
   .links .hide-md { display: none; }
 }
@@ -384,9 +413,10 @@ footer a:hover { color: var(--text); }
   <div class="hero">
     <div class="hero-bg" aria-hidden="true"><canvas id="field"></canvas></div>
     <div class="wrap">
+      <div class="hero-top">
+      <div class="hero-copy">
       <span class="eyebrow"><span class="dot"></span>A free skill for Claude Code</span>
       <h1>Claude can <span class="lit"><span>listen</span></span> now.</h1>
-      <div class="hero-row">
         <p class="lede"><strong>hear</strong> turns any audio or video file into a report Claude can read: <strong>who spoke, what they said, and how they said it.</strong> All on your own machine.</p>
         <div class="facts" aria-label="Key facts">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>macOS · Windows · Linux</span>
@@ -394,6 +424,18 @@ footer a:hover { color: var(--text); }
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Audio never leaves you</span>
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>~2.4 GB peak RAM</span>
         </div>
+        <div class="keyrow">
+          <button class="key" id="listen" type="button" aria-label="Play the example and watch it listen">
+            <span class="cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8.5a6 6 0 1 1 12 0c0 3.5-3 4.5-3 7.5a3.5 3.5 0 0 1-6.5 1.8"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.5 2-1.5 3.5"/></svg><b>listen</b></span>
+          </button>
+          <span class="key-hint">Press it, or hit <kbd>L</kbd>,<br>and watch it hear the example.</span>
+        </div>
+      </div>
+      <div class="mascot-wrap">
+        <img id="mascot-still" src="mascot.png" alt="The hear mascot: a little orange block character with big listening ears" width="600" height="600" decoding="async">
+        <canvas id="mascot" aria-hidden="true"></canvas>
+        <div class="caption" id="caption" aria-hidden="true"></div>
+      </div>
       </div>
 
       <div class="stage" role="region" aria-label="Live example: a hearing report playing back over its waveform">
@@ -614,6 +656,7 @@ footer a:hover { color: var(--text); }
         <details><summary>How much RAM and disk does hear need?</summary><p>About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages.</p></details>
         <details><summary>What file types can hear listen to?</summary><p>Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm.</p></details>
         <details><summary>How long does it take?</summary><p>On an Apple M4, a 40-second clip takes about 45 to 50 seconds for the full report and about 30 seconds with <code>--fast</code>. Without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more.</p></details>
+        <details><summary>Is hear made by Anthropic?</summary><p>No. hear is an independent, free skill that works with Claude Code. Claude and Claude Code are made by Anthropic; hear just gives Claude Code a way to listen to audio and video.</p></details>
         <details><summary>Can it tell who is speaking?</summary><p>Yes. It labels each line S1, S2 and so on from a voice fingerprint and reports each speaker's share of the talking. Very short lines and lines over loud music are the least reliable, and the report flags those.</p></details>
       </div>
     </div>
@@ -634,7 +677,7 @@ footer a:hover { color: var(--text); }
 <footer>
   <div class="wrap">
     <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>hear</a>
-    <span>A Claude Code skill by kolinabir · <a href="https://github.com/kolinabir/claude-hear">GitHub</a> · <a href="llms.txt">llms.txt</a></span>
+    <span>A Claude Code skill by kolinabir · <a href="https://github.com/kolinabir/claude-hear">GitHub</a> · <a href="llms.txt">llms.txt</a><br><small>Independent project, not made by Anthropic. Claude is a trademark of Anthropic.</small></span>
   </div>
 </footer>
 
@@ -715,6 +758,32 @@ function render(t) {
   });
   tags.forEach(tg => tg.classList.toggle("show", DATA.words[+tg.dataset.i][3] <= t));
   lns.forEach((l, i) => l.classList.toggle("cur", i === cur && t < DATA.dur));
+  announce(t);
+}
+
+// tell the mascot and the caption about every word as it is heard
+const caption = $("caption");
+let heardCount = 0, ended = false, capTimer;
+function announce(t) {
+  const n = t > 0 ? DATA.words.filter(w => w[2] <= t).length : 0;
+  for (let i = heardCount; i < n; i++) {
+    const [spk, text, , , end, emo] = DATA.words[i];
+    dispatchEvent(new CustomEvent("hear:word", { detail: { i, spk, text, end, emo } }));
+  }
+  if (n !== heardCount && n > 0) {
+    const line = lineOf[n - 1], first = lineOf.indexOf(line);
+    const words = DATA.words.slice(first, n).map(w => esc(w[1]).replace(/([↑↓]|\[\?\])/g, '<span class="S2">$1</span>')).join(" ");
+    const spk = DATA.words[n - 1][0];
+    caption.innerHTML = `<span class="${spk}">${spk}</span> ${words}`;
+    caption.classList.add("on");
+    clearTimeout(capTimer);
+  }
+  heardCount = n;
+  if (t >= DATA.dur && !ended) {
+    ended = true;
+    dispatchEvent(new Event("hear:end"));
+    capTimer = setTimeout(() => caption.classList.remove("on"), 1800);
+  }
 }
 let raf, start, from = 0;
 const frame = now => {
@@ -723,11 +792,29 @@ const frame = now => {
   render(t);
   if (t < DATA.dur) raf = requestAnimationFrame(frame);
 };
-const play = (at = 0) => { cancelAnimationFrame(raf); from = at; start = null; raf = requestAnimationFrame(frame); };
+const play = (at = 0) => {
+  cancelAnimationFrame(raf); from = at; start = null;
+  heardCount = DATA.words.filter(w => w[2] < at).length; ended = false;
+  dispatchEvent(new Event("hear:play"));
+  raf = requestAnimationFrame(frame);
+};
 $("play").onclick = () => play(0);
+
+// the listen key, plus L on the keyboard
+const keyBtn = $("listen");
+const pressKey = () => { keyBtn.classList.add("down"); setTimeout(() => keyBtn.classList.remove("down"), 160); play(0); };
+keyBtn.onclick = pressKey;
+addEventListener("keydown", e => {
+  if (e.key.toLowerCase() === "l" && !e.metaKey && !e.ctrlKey && !e.altKey && !/input|textarea/i.test(e.target.tagName)) pressKey();
+});
 wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * DATA.dur); };
 if (reduce) render(DATA.dur);
-else { render(0); new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { setTimeout(() => play(0), 500); o.disconnect(); } }, { threshold: .4 }).observe(wave); }
+else {
+  render(0);
+  // first listen happens up top with the mascot; the demo replays when scrolled to, unless it's mid-play
+  setTimeout(() => play(0), 1200);
+  new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { setTimeout(() => { if (ended) play(0); }, 400); o.disconnect(); } }, { threshold: .4 }).observe(wave);
+}
 
 // mini spectrogram bars in the bento
 (() => { const s = $("spec"); for (let i = 0; i < 48; i++) { const b = document.createElement("i"); b.style.height = (20 + Math.abs(Math.sin(i * .7) * 60 + Math.sin(i * 2.3) * 20)) + "%"; s.appendChild(b); } })();
@@ -757,6 +844,22 @@ $("copy2").onclick = () => {
   const text = pre.innerText.split("\n").filter(l => !l.startsWith("#")).map(l => l.replace(/^[$>] /, "")).join("\n").trim();
   navigator.clipboard.writeText(text).then(() => copied($("copy2"), "Copy"), () => { $("copy2").querySelector("span").textContent = "Select and copy"; });
 };
+</script>
+<script type="module">
+// 3D mascot: progressive enhancement over the still image
+import { createMascot } from "./mascot.js";
+const wrap = document.querySelector(".mascot-wrap"), canvas = document.getElementById("mascot");
+try {
+  const m = createMascot(canvas);
+  requestAnimationFrame(() => wrap.classList.add("live"));
+  addEventListener("hear:play", () => m.listen());
+  addEventListener("hear:word", e => m.word(e.detail));
+  addEventListener("hear:end", () => m.end());
+  canvas.addEventListener("click", () => m.boop());
+  document.querySelectorAll(".pill-btn, .jade, .copy, #copy1").forEach(el => el.addEventListener("mouseenter", () => m.hop()));
+} catch (err) {
+  console.warn("3D mascot unavailable, showing the still image:", err);
+}
 </script>
 </body>
 </html>
