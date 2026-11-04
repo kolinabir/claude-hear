@@ -24,7 +24,7 @@ uv run --script <this skill's base directory>/hear.py "<file>" --out "<scratchpa
 
 - On a PC without an NVIDIA GPU, transcription runs on the CPU and takes roughly the clip's length or more; run long files in the background.
 - Stages run one at a time in separate processes, so peak memory is ~2.4 GB (Whisper) however many stages run.
-- First run downloads models (~3 GB in total) and Python packages; it takes several minutes. Later runs are fast.
+- First run downloads models (~3.5 GB in total) and Python packages; it takes several minutes. Later runs are fast.
 - Files over ~5 minutes (or ~2 minutes on a CPU-only PC): run it in the background.
 
 ## Read the output

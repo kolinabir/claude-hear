@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hear: Let Claude Code Listen to Audio and Video</title>
-<meta name="description" content="hear is a free Claude Code skill that turns any audio or video file into a report Claude can read: who spoke, what they said, and how they said it. Runs locally on macOS, Windows and Linux.">
+<meta name="description" content="A free Claude Code skill that turns audio or video into a report Claude can read: who spoke, what they said, and how. Runs locally on macOS, Windows and Linux.">
 <link rel="canonical" href="https://kolinabir.github.io/claude-hear/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="kolinabir">
@@ -14,14 +14,14 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="hear">
 <meta property="og:url" content="https://kolinabir.github.io/claude-hear/">
-<meta property="og:title" content="hear: Let Claude Code listen to audio and video">
+<meta property="og:title" content="hear: Let Claude Code Listen to Audio and Video">
 <meta property="og:description" content="Who spoke, what they said, and how they said it, as a report Claude can read. Free, private, runs on your own machine.">
 <meta property="og:image" content="https://kolinabir.github.io/claude-hear/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="hear: Claude can listen now. A waveform turning into an annotated transcript.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="hear: Let Claude Code listen to audio and video">
+<meta name="twitter:title" content="hear: Let Claude Code Listen to Audio and Video">
 <meta name="twitter:description" content="Who spoke, what they said, and how they said it, as a report Claude can read. Free and local.">
 <meta name="twitter:image" content="https://kolinabir.github.io/claude-hear/og.png">
 
@@ -55,8 +55,8 @@
       "downloadUrl": "https://github.com/kolinabir/claude-hear",
       "installUrl": "https://kolinabir.github.io/claude-hear/#install",
       "memoryRequirements": "About 2.4 GB of RAM at peak",
-      "storageRequirements": "About 3.5 GB for models plus 3 to 4 GB of Python packages",
-      "softwareRequirements": "Claude Code, ffmpeg, git, uv",
+      "storageRequirements": "About 3.5 GB of models plus 3 to 4 GB of Python packages",
+      "softwareRequirements": "Claude Code and git; the installer adds ffmpeg and uv",
       "featureList": [
         "Word-level transcript with timings and confidence (Whisper large-v3 turbo)",
         "Speaker labels from a voice fingerprint per line",
@@ -70,28 +70,16 @@
       "author": { "@type": "Person", "name": "kolinabir", "url": "https://github.com/kolinabir" }
     },
     {
-      "@type": "HowTo",
-      "@id": "https://kolinabir.github.io/claude-hear/#install",
-      "name": "How to give Claude Code the ability to listen to audio and video",
-      "totalTime": "PT5M",
-      "tool": [{ "@type": "HowToTool", "name": "Claude Code" }, { "@type": "HowToTool", "name": "git" }],
-      "step": [
-        { "@type": "HowToStep", "position": 1, "name": "Clone the repository", "text": "Run: git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear" },
-        { "@type": "HowToStep", "position": 2, "name": "Run the installer", "text": "On macOS or Linux run ~/.claude-hear/install.sh --warm. On Windows run install.ps1 -Warm in PowerShell. It installs ffmpeg and uv if needed, adds the skill to ~/.claude/skills/hear and downloads the models." },
-        { "@type": "HowToStep", "position": 3, "name": "Ask Claude to listen", "text": "In Claude Code, ask for example: listen to ~/Downloads/interview.mp4 and tell me where the speaker sounds unsure. Or type /hear followed by a file path." }
-      ]
-    },
-    {
       "@type": "FAQPage",
       "@id": "https://kolinabir.github.io/claude-hear/#faq",
       "mainEntity": [
-        { "@type": "Question", "name": "Can Claude listen to audio?", "acceptedAnswer": { "@type": "Answer", "text": "Claude has no audio input. The hear skill gives Claude Code a way to listen: it converts an audio or video file into a text report with a word-timed transcript, speakers, delivery marks, emotion guesses and sound labels, plus a spectrogram image, which Claude then reads." } },
-        { "@type": "Question", "name": "Does hear send my audio to the cloud?", "acceptedAnswer": { "@type": "Answer", "text": "No. Every model runs on your own computer. The only network use is the one-time model download of about 3.5 GB." } },
-        { "@type": "Question", "name": "Which operating systems does hear support?", "acceptedAnswer": { "@type": "Answer", "text": "macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows and Linux use faster-whisper on an NVIDIA GPU when CUDA is available, otherwise on the CPU." } },
-        { "@type": "Question", "name": "How much RAM and disk does hear need?", "acceptedAnswer": { "@type": "Answer", "text": "About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages." } },
-        { "@type": "Question", "name": "What file types can hear listen to?", "acceptedAnswer": { "@type": "Answer", "text": "Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm." } },
-        { "@type": "Question", "name": "How long does it take?", "acceptedAnswer": { "@type": "Answer", "text": "On an Apple M4 a 40-second clip takes about 45 seconds for the full report and about 30 seconds with --fast. On a computer without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more." } },
-        { "@type": "Question", "name": "Can it tell who is speaking?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It labels each line S1, S2 and so on from a voice fingerprint and reports each speaker's share of talking time. Very short lines and lines over loud music are the least reliable." } }
+        {"@type": "Question", "name": "Can Claude listen to audio?", "acceptedAnswer": {"@type": "Answer", "text": "Not on its own: Claude has no audio input. hear gives Claude Code a way to listen. It turns an audio or video file into a text report (a word-timed transcript, speakers, delivery marks, emotion guesses and sound labels) plus a spectrogram image, and Claude reads those."}},
+        {"@type": "Question", "name": "Does hear send my audio to the cloud?", "acceptedAnswer": {"@type": "Answer", "text": "No. Every model runs on your own computer. The only network use is the one-time download of about 3.5 GB of models."}},
+        {"@type": "Question", "name": "Which operating systems does hear support?", "acceptedAnswer": {"@type": "Answer", "text": "macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows, Linux and Intel Macs use faster-whisper, on an NVIDIA GPU when CUDA 12 and cuDNN 9 are installed, otherwise on the CPU. Windows and Linux support is in beta."}},
+        {"@type": "Question", "name": "How much RAM and disk does hear need?", "acceptedAnswer": {"@type": "Answer", "text": "About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages."}},
+        {"@type": "Question", "name": "What file types can hear listen to?", "acceptedAnswer": {"@type": "Answer", "text": "Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm."}},
+        {"@type": "Question", "name": "How long does it take?", "acceptedAnswer": {"@type": "Answer", "text": "On an Apple M4, a 40-second clip takes about 45 to 50 seconds for the full report and about 30 seconds with --fast. Without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more."}},
+        {"@type": "Question", "name": "Can it tell who is speaking?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It labels each line S1, S2 and so on from a voice fingerprint and reports each speaker's share of the talking. Very short lines and lines over loud music are the least reliable, and the report flags those."}}
       ]
     }
   ]
@@ -204,7 +192,7 @@ h1 .lit span { display: inline-block; animation: hear .9s cubic-bezier(.2, .9, .
 .split > * { min-width: 0; padding: 26px 28px; min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; }
 .cmdbox { background: linear-gradient(120deg, #031338, #062a6b); }
 .cmdbox .row { display: flex; align-items: stretch; gap: 10px; }
-.cmdbox code { flex: 1; min-width: 0; display: flex; align-items: center; padding: 0 14px; height: 48px; border-radius: 10px; background: #f3f7ff; color: #071634; font-size: 13.5px; white-space: nowrap; overflow-x: auto; }
+.cmdbox code { flex: 1; min-width: 0; display: flex; align-items: center; padding: 12px 14px; min-height: 48px; border-radius: 10px; background: #f3f7ff; color: #071634; font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
 .cmdbox button { flex: none; height: 48px; padding: 0 18px; border-radius: 10px; border: 1px solid rgba(243, 247, 255, .5); background: transparent; color: var(--text); font: 600 15px "Instrument Sans", sans-serif; cursor: pointer; }
 .cmdbox button:hover { border-color: #fff; background: rgba(255, 255, 255, .06); }
 .jade { background: var(--jade); color: var(--jade-ink); transition: background .2s; }
@@ -222,7 +210,7 @@ h1 .lit span { display: inline-block; animation: hear .9s cubic-bezier(.2, .9, .
 @keyframes slide { to { transform: translateX(-50%); } }
 
 /* sections */
-section { padding: 120px 0; position: relative; }
+section { padding: 96px 0; position: relative; }
 .kicker { font: 500 13px "JetBrains Mono", monospace; color: var(--ocean); letter-spacing: .06em; text-transform: uppercase; margin: 0 0 16px; }
 h2 { font-size: clamp(36px, 5vw, 64px); line-height: 1; letter-spacing: -.045em; font-weight: 600; margin: 0 0 20px; max-width: 16ch; }
 h2 em { font-style: normal; color: var(--jade); }
@@ -296,7 +284,7 @@ dt { color: var(--text-3); } dd { margin: 0; text-align: right; color: var(--tex
 .copy { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: var(--jade); color: var(--jade-ink); font: 600 13px "Instrument Sans", sans-serif; cursor: pointer; }
 .copy svg { width: 14px; height: 14px; }
 pre { margin: 0; padding: 24px 22px 26px; font-size: 14px; line-height: 1.95; color: #dbe5ff; overflow-x: auto; }
-pre .c { color: #4e5f86; } pre .p { color: var(--ocean); user-select: none; }
+pre .c { color: var(--text-3); } pre .p { color: var(--ocean); user-select: none; }
 .asks { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
 .asks li { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg-2); color: var(--text-2); font-size: 15px; }
 .asks li b { color: var(--text); font-weight: 500; }
@@ -354,9 +342,11 @@ footer a:hover { color: var(--text); }
 @media (max-width: 640px) {
   .wrap { padding: 0 16px; }
   .hero { padding-top: 104px; }
-  section { padding: 84px 0; }
+  section { padding: 72px 0; }
   .split, .bento, .pipe, .marks { grid-template-columns: minmax(0, 1fr); }
-  .t-speak, .t-sounds, .t-emo, .t-spec, .t-local { grid-column: auto; }
+  .t-marks, .t-speak, .t-sounds, .t-emo, .t-spec, .t-local { grid-column: auto; }
+  .wave { gap: 1px; } .wave b { min-width: 0; }
+  .stage-bar .file { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .mk { border-right: 0 !important; } .mk:nth-last-child(2) { border-bottom: 1px solid var(--line); }
   .facts { grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 13px; }
   .stage { border-radius: 16px 16px 0 0; }
@@ -406,7 +396,7 @@ footer a:hover { color: var(--text); }
         </div>
       </div>
 
-      <div class="stage" role="region" aria-label="Live example: a hearing report playing back in sync with its audio">
+      <div class="stage" role="region" aria-label="Live example: a hearing report playing back over its waveform">
         <div class="stage-bar">
           <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
           <div class="file"><b>two-voices.wav</b> → hearing.md · real output</div>
@@ -427,7 +417,7 @@ footer a:hover { color: var(--text); }
       </div>
       <div class="split">
         <div class="cmdbox">
-          <span class="lab">Install with one line</span>
+          <span class="lab">Paste once to install</span>
           <div class="row"><code id="oneliner">git clone https://github.com/kolinabir/claude-hear.git ~/.claude-hear && ~/.claude-hear/install.sh --warm</code><button type="button" id="copy1">Copy</button></div>
         </div>
         <a class="jade" href="#install">
@@ -477,7 +467,7 @@ footer a:hover { color: var(--text); }
         <article class="tile t-sounds rv">
           <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
           <h3>Sounds around the speech</h3>
-          <p>Background music, laughter, applause and whooshes, labelled second by second.</p>
+          <p>Background music, laughter, applause and whooshes, labelled in 2-second windows, every second.</p>
           <div class="chip-row"><span class="chip on">music</span><span class="chip">laughter</span><span class="chip">applause</span><span class="chip">whoosh</span></div>
         </article>
         <article class="tile t-emo rv">
@@ -494,7 +484,7 @@ footer a:hover { color: var(--text); }
         </article>
         <article class="tile t-local rv">
           <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
-          <div class="big">0 bytes</div>
+          <h3 class="big">0 bytes</h3>
           <p>leave your machine. Every model runs locally; only the one-time model download uses the network.</p>
         </article>
       </div>
@@ -506,16 +496,16 @@ footer a:hover { color: var(--text); }
       <div class="sec-head rv">
         <div>
           <p class="kicker">How it works</p>
-          <h2 id="h-title">Five models, <em>one at a time.</em></h2>
+          <h2 id="h-title">Five stages, <em>one at a time.</em></h2>
         </div>
         <p class="sub">Each stage is its own process: it loads, writes its result, exits and hands the memory back. So the peak is the biggest stage, never the sum. Measured on an Apple M4 with a 40-second clip.</p>
       </div>
       <ol class="pipe" id="pipe" style="list-style:none;margin:0;padding:0">
-        <li class="stage-card rv"><span class="n">01</span><h3>sounds</h3><span class="m">CLAP, zero-shot</span><p>Labels every 2-second window: music, laughter, applause…</p><div class="ram"><span>1.3 GB</span><span>11 s</span></div><div class="bar"><i style="--w:54%"></i></div></li>
+        <li class="stage-card rv"><span class="n">01</span><h3>sounds</h3><span class="m">CLAP, zero-shot</span><p>Labels 2-second windows, every second: music, laughter, applause…</p><div class="ram"><span>1.3 GB</span><span>11 s</span></div><div class="bar"><i style="--w:54%"></i></div></li>
         <li class="stage-card peak rv"><span class="n">02 · peak</span><h3>asr</h3><span class="m">Whisper large-v3 turbo</span><p>Every word with its start, end and confidence.</p><div class="ram"><span>2.4 GB</span><span>20 s</span></div><div class="bar"><i style="--w:100%"></i></div></li>
         <li class="stage-card rv"><span class="n">03</span><h3>prosody</h3><span class="m">loudness + pyin pitch</span><p>dB and Hz per word, turned into the marks.</p><div class="ram"><span>0.25 GB</span><span>6 s</span></div><div class="bar"><i style="--w:10%"></i></div></li>
         <li class="stage-card rv"><span class="n">04</span><h3>speakers</h3><span class="m">WeSpeaker ResNet34</span><p>A voice fingerprint per line, grouped into S1, S2…</p><div class="ram"><span>0.15 GB</span><span>1 s</span></div><div class="bar"><i style="--w:6%"></i></div></li>
-        <li class="stage-card rv"><span class="n">05</span><h3>emotion</h3><span class="m">emotion2vec+, ONNX</span><p>A tone guess for each line over 1.5 seconds.</p><div class="ram"><span>1.1 GB</span><span>4 s</span></div><div class="bar"><i style="--w:46%"></i></div></li>
+        <li class="stage-card rv"><span class="n">05</span><h3>emotion</h3><span class="m">emotion2vec+, ONNX</span><p>A tone guess for each line longer than 1.5 s.</p><div class="ram"><span>1.1 GB</span><span>4 s</span></div><div class="bar"><i style="--w:46%"></i></div></li>
       </ol>
       <div class="numbers rv">
         <div><strong>2.4<em> GB</em></strong><span>peak RAM, any clip length</span></div>
@@ -538,34 +528,34 @@ footer a:hover { color: var(--text); }
       <div class="plats">
         <article class="plat rv">
           <div class="top"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8c1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1ZM13.9 4.9c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.1.1 2.3-.6 3-1.5Z"/></svg><h3 style="margin:0;font:inherit">macOS</h3><span class="badge best">fastest</span></div>
-          <dl><div><dt>Engine</dt><dd>Whisper on MLX (GPU)</dd></div><div><dt>Needs</dt><dd>Apple Silicon, macOS 14+</dd></div><div><dt>40 s clip</dt><dd>~45 s, full report</dd></div><div><dt>Intel Macs</dt><dd>CPU, like a PC</dd></div></dl>
+          <dl><div><dt>Engine</dt><dd>Whisper on MLX</dd></div><div><dt>GPU</dt><dd>Apple Silicon, macOS 14+</dd></div><div><dt>Speed</dt><dd>~1.2× clip length</dd></div><div><dt>Installer</dt><dd>bash + Homebrew</dd></div></dl>
         </article>
         <article class="plat rv">
-          <div class="top"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1 10.4 4v7.2H3V5.1Zm8.3-1.2L21 2.5v8.7h-9.7V3.9ZM3 12.8h7.4V20L3 18.9v-6.1Zm8.3 0H21v8.7l-9.7-1.4v-7.3Z"/></svg><h3 style="margin:0;font:inherit">Windows</h3><span class="badge">new</span></div>
-          <dl><div><dt>Engine</dt><dd>faster-whisper</dd></div><div><dt>GPU</dt><dd>NVIDIA via CUDA 12, else CPU</dd></div><div><dt>CPU speed</dt><dd>~1× clip length or more</dd></div><div><dt>Installer</dt><dd>PowerShell + winget</dd></div></dl>
+          <div class="top"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1 10.4 4v7.2H3V5.1Zm8.3-1.2L21 2.5v8.7h-9.7V3.9ZM3 12.8h7.4V20L3 18.9v-6.1Zm8.3 0H21v8.7l-9.7-1.4v-7.3Z"/></svg><h3 style="margin:0;font:inherit">Windows</h3><span class="badge">beta</span></div>
+          <dl><div><dt>Engine</dt><dd>faster-whisper</dd></div><div><dt>GPU</dt><dd>NVIDIA (CUDA 12 + cuDNN 9), else CPU</dd></div><div><dt>Speed</dt><dd>CPU: ~1–2× clip length</dd></div><div><dt>Installer</dt><dd>PowerShell + winget</dd></div></dl>
         </article>
         <article class="plat rv">
-          <div class="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg><h3 style="margin:0;font:inherit">Linux</h3><span class="badge">new</span></div>
-          <dl><div><dt>Engine</dt><dd>faster-whisper</dd></div><div><dt>GPU</dt><dd>NVIDIA via CUDA 12, else CPU</dd></div><div><dt>CPU speed</dt><dd>~1× clip length or more</dd></div><div><dt>Installer</dt><dd>bash + apt / dnf / pacman</dd></div></dl>
+          <div class="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg><h3 style="margin:0;font:inherit">Linux</h3><span class="badge">beta</span></div>
+          <dl><div><dt>Engine</dt><dd>faster-whisper</dd></div><div><dt>GPU</dt><dd>NVIDIA (CUDA 12 + cuDNN 9), else CPU</dd></div><div><dt>Speed</dt><dd>CPU: ~1–2× clip length</dd></div><div><dt>Installer</dt><dd>bash + apt / dnf / pacman</dd></div></dl>
         </article>
       </div>
     </div>
   </section>
 
-  <section id="install" aria-labelledby="i-title" style="padding-top:0">
+  <section id="install" aria-labelledby="i-title">
     <div class="wrap">
       <div class="sec-head rv">
         <div>
           <p class="kicker">Install</p>
           <h2 id="i-title">Two commands. <em>Then just ask.</em></h2>
         </div>
-        <p class="sub">The installer adds ffmpeg, git and uv if they're missing, then puts the skill in <code>~/.claude/skills/hear</code>, so every Claude Code session can use it. The warm flag downloads the models (~3 GB) right away.</p>
+        <p class="sub">You need git and Claude Code. The installer adds ffmpeg and uv if they're missing, then puts the skill in <code>~/.claude/skills/hear</code>, so every Claude Code session can use it. The warm flag downloads the models (~3.5 GB) right away.</p>
       </div>
       <div class="install">
         <div class="rv">
           <div class="term">
             <div class="term-top">
-              <div class="tabs" role="tablist" aria-label="Operating system"><button class="on" data-os="unix" role="tab" aria-selected="true">macOS · Linux</button><button data-os="win" role="tab" aria-selected="false">Windows</button></div>
+              <div class="tabs" role="group" aria-label="Operating system"><button class="on" data-os="unix" type="button" aria-pressed="true">macOS · Linux</button><button data-os="win" type="button" aria-pressed="false">Windows</button></div>
               <button class="copy" type="button" id="copy2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>Copy</span></button>
             </div>
 <pre data-os="unix"><span class="c"># 1. get the code   2. install + download models</span>
@@ -604,7 +594,7 @@ footer a:hover { color: var(--text); }
     </div>
   </section>
 
-  <section id="faq" aria-labelledby="q-title" style="padding-top:0">
+  <section id="faq" aria-labelledby="q-title">
     <div class="wrap faq">
       <div class="rv">
         <p class="kicker">FAQ</p>
@@ -614,21 +604,22 @@ footer a:hover { color: var(--text); }
           <div class="limit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span>Marks are cues, not certainty: "louder and higher" suggests emphasis; it doesn't prove anger.</span></div>
           <div class="limit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span>Emotion leans neutral; sound labels can confuse neighbours like laughing and coughing.</span></div>
           <div class="limit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span>Pitch is given for words with clear voicing, about half of them.</span></div>
+          <div class="limit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span>Windows and Linux support is in beta: the speech engine is tested, but the Windows installer hasn't been run on a real PC yet.</span></div>
         </div>
       </div>
       <div class="rv">
         <details open><summary>Can Claude listen to audio?</summary><p>Not on its own: Claude has no audio input. hear gives Claude Code a way to listen. It turns an audio or video file into a text report (a word-timed transcript, speakers, delivery marks, emotion guesses and sound labels) plus a spectrogram image, and Claude reads those.</p></details>
         <details><summary>Does hear send my audio to the cloud?</summary><p>No. Every model runs on your own computer. The only network use is the one-time download of about 3.5 GB of models.</p></details>
-        <details><summary>Which operating systems does it support?</summary><p>macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows and Linux use faster-whisper on an NVIDIA GPU when CUDA is available, otherwise on the CPU.</p></details>
-        <details><summary>How much RAM and disk does it need?</summary><p>About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages.</p></details>
-        <details><summary>What file types can it listen to?</summary><p>Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm.</p></details>
-        <details><summary>How long does it take?</summary><p>On an Apple M4, a 40-second clip takes about 45 seconds for the full report and about 30 seconds with <code>--fast</code>. Without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more.</p></details>
+        <details><summary>Which operating systems does hear support?</summary><p>macOS, Windows and Linux. Apple Silicon Macs run Whisper on the GPU with MLX. Windows, Linux and Intel Macs use faster-whisper, on an NVIDIA GPU when CUDA 12 and cuDNN 9 are installed, otherwise on the CPU. Windows and Linux support is in beta.</p></details>
+        <details><summary>How much RAM and disk does hear need?</summary><p>About 2.4 GB of RAM at peak, because the stages run one at a time. On disk, about 3.5 GB of models and 3 to 4 GB of Python packages.</p></details>
+        <details><summary>What file types can hear listen to?</summary><p>Anything ffmpeg can read, including mp3, wav, m4a, aac, flac, ogg, mp4, mov, mkv and webm.</p></details>
+        <details><summary>How long does it take?</summary><p>On an Apple M4, a 40-second clip takes about 45 to 50 seconds for the full report and about 30 seconds with <code>--fast</code>. Without Apple Silicon or an NVIDIA GPU, transcription alone takes roughly the clip's length or more.</p></details>
         <details><summary>Can it tell who is speaking?</summary><p>Yes. It labels each line S1, S2 and so on from a voice fingerprint and reports each speaker's share of the talking. Very short lines and lines over loud music are the least reliable, and the report flags those.</p></details>
       </div>
     </div>
   </section>
 
-  <section aria-labelledby="c-title" style="padding-top:0">
+  <section aria-labelledby="c-title">
     <div class="wrap">
       <div class="final rv">
         <h2 id="c-title">Let Claude listen.</h2>
@@ -753,18 +744,18 @@ const ONE = {
   win: "git clone https://github.com/kolinabir/claude-hear.git $HOME\\.claude-hear; powershell -ExecutionPolicy Bypass -File $HOME\\.claude-hear\\install.ps1 -Warm",
 };
 function showOS(os) {
-  document.querySelectorAll(".tabs button").forEach(b => { b.classList.toggle("on", b.dataset.os === os); b.setAttribute("aria-selected", b.dataset.os === os); });
+  document.querySelectorAll(".tabs button").forEach(b => { b.classList.toggle("on", b.dataset.os === os); b.setAttribute("aria-pressed", b.dataset.os === os); });
   document.querySelectorAll("pre[data-os], ul[data-os]").forEach(el => el.hidden = el.dataset.os !== os);
   $("oneliner").textContent = ONE[os];
 }
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showOS(b.dataset.os));
 showOS(isWin ? "win" : "unix");
 const copied = (btn, label) => { const s = btn.querySelector("span") || btn; s.textContent = "Copied"; setTimeout(() => s.textContent = label, 1400); };
-$("copy1").onclick = () => navigator.clipboard.writeText($("oneliner").textContent).then(() => copied($("copy1"), "Copy"));
+$("copy1").onclick = () => navigator.clipboard.writeText($("oneliner").textContent).then(() => copied($("copy1"), "Copy"), () => { $("copy1").textContent = "Select and copy"; });
 $("copy2").onclick = () => {
   const pre = document.querySelector("pre[data-os]:not([hidden])");
   const text = pre.innerText.split("\n").filter(l => !l.startsWith("#")).map(l => l.replace(/^[$>] /, "")).join("\n").trim();
-  navigator.clipboard.writeText(text).then(() => copied($("copy2"), "Copy"));
+  navigator.clipboard.writeText(text).then(() => copied($("copy2"), "Copy"), () => { $("copy2").querySelector("span").textContent = "Select and copy"; });
 };
 </script>
 </body>

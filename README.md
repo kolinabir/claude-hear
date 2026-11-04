@@ -54,7 +54,7 @@ git clone https://github.com/kolinabir/claude-hear.git $HOME\.claude-hear
 powershell -ExecutionPolicy Bypass -File $HOME\.claude-hear\install.ps1 -Warm
 ```
 
-`--warm` / `-Warm` downloads the models now (~3 GB, a few minutes). Without it, the first listen does it.
+`--warm` / `-Warm` downloads the models now (~3.5 GB, a few minutes). Without it, the first listen does it.
 
 If the repo is public, the same in one line:
 

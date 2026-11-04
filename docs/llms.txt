@@ -2,13 +2,13 @@
 
 > hear is a free Claude Code skill that lets Claude listen to audio and video files. It turns a file into a text report Claude can read (who spoke, what they said, and how they said it) plus a spectrogram image. Everything runs locally on macOS, Windows and Linux; audio never leaves the machine.
 
-Claude has no audio input. hear works around that by running five local models one at a time and writing their results as compact text:
+Claude has no audio input. hear works around that by running five local stages one at a time and writing their results as compact text:
 
 - Transcript: every word with start, end and confidence (Whisper large-v3 turbo; MLX on Apple Silicon, faster-whisper elsewhere).
 - Speakers: S1, S2… per line from a voice fingerprint (WeSpeaker ResNet34), with each speaker's share of talking time.
 - Delivery marks: **louder**, (quieter), pitch ↑ ↓ relative to the speaker, line ends rising ↗ or falling ↘, pauses ‖0.8s‖, pace in words per minute, [?] for unsure words.
 - Emotion: a tone guess per line when confident (emotion2vec+).
-- Sounds: music, laughter, applause, whooshes and more per second (CLAP, zero-shot).
+- Sounds: music, laughter, applause, whooshes and more, in 2-second windows every second (CLAP, zero-shot).
 - Spectrogram: an image of the sound for anything the labels miss.
 
 ## Install

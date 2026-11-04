@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Install the "hear" skill for Claude Code on macOS or Linux (Windows: install.ps1).
 #   ./install.sh           link the skill (installs ffmpeg and uv if missing)
-#   ./install.sh --warm    also download all models now (~3 GB) by listening to a test clip
+#   ./install.sh --warm    also download all models now (~3.5 GB) by listening to a test clip
 # Run it from a clone, or via curl: it then clones to ~/.claude-hear (override with CLAUDE_HEAR_DIR).
 set -euo pipefail
 
@@ -81,7 +81,7 @@ chmod +x "$SRC/skill/hear.py"
 echo "$SKILL_DIR → $SRC/skill"
 
 if (( WARM )); then
-  say_step "Downloading models (~3 GB, a few minutes, once)"
+  say_step "Downloading models (~3.5 GB, a few minutes, once)"
   tmp="$(mktemp -d)"
   ffmpeg -v error -f lavfi -i "sine=frequency=220:duration=3" "$tmp/tone.wav"  # any audio triggers every download
   uv run --script "$SRC/skill/hear.py" "$tmp/tone.wav" --out "$tmp/out"
@@ -89,4 +89,4 @@ if (( WARM )); then
 fi
 
 printf '\n\033[32m✓ Installed.\033[0m Open Claude Code and ask: "listen to ~/Downloads/clip.mp4"\n'
-(( WARM )) || echo "  The first listen downloads ~3 GB of models. Run \"$SRC/install.sh\" --warm to do it now."
+(( WARM )) || echo "  The first listen downloads ~3.5 GB of models. Run \"$SRC/install.sh\" --warm to do it now."

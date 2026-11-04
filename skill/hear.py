@@ -6,7 +6,7 @@
 """Turn an audio/video file into text Claude can "hear".
 
 Runs each analysis stage as its own process, one at a time, so peak RAM is the biggest stage
-(~2.2 GB, Whisper) instead of the sum of all models.
+(~2.4 GB, Whisper) instead of the sum of all models.
 """
 import argparse
 import json
