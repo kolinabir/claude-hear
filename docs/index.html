@@ -151,6 +151,13 @@ h1 { font-size: clamp(50px, 7.2vw, 104px); line-height: .92; letter-spacing: -.0
 .hero-copy .lede { margin-top: 28px; }
 .hero-copy .facts { justify-content: start; margin-top: 26px; }
 .mascot-wrap { position: relative; width: 100%; max-width: 540px; aspect-ratio: 1; justify-self: center; }
+/* the stage fills the hero slot; once the hero scrolls away it docks to a corner so Claude stays on screen */
+.mascot-stage { position: absolute; inset: 0; }
+.mascot-stage.docked { position: fixed; inset: auto 18px 18px auto; width: 190px; height: 190px; z-index: 60; border-radius: 28px; background: radial-gradient(closest-side, rgba(0, 211, 251, .16), transparent); animation: dock-in .45s cubic-bezier(.2, 1.4, .4, 1); }
+.mascot-stage.docked .spin-hint, .mascot-stage.docked .fx, .mascot-stage.docked .snd { display: none; }
+.mascot-stage.docked .caption { bottom: -6px; font-size: 11px; padding: 6px 10px; max-width: 260px; left: auto; right: 0; transform: none; }
+@keyframes dock-in { from { opacity: 0; transform: translateY(30px) scale(.7); } }
+@media (max-width: 640px) { .mascot-stage.docked { width: 128px; height: 128px; right: 10px; bottom: 10px; } }
 .mascot-wrap img, .mascot-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mascot-wrap img { object-fit: contain; transition: opacity .5s; }
 .mascot-wrap img, .mascot-wrap canvas { z-index: 1; }
@@ -415,12 +422,14 @@ footer a:hover { color: var(--text); }
         </div>
       </div>
       <div class="mascot-wrap">
+        <div class="mascot-stage">
         <div class="fx" id="fx" aria-hidden="true"><i class="lines"></i><i class="flash"></i></div>
         <img id="mascot-still" src="mascot.png" alt="The hear mascot: an orange block character with glowing ears" width="600" height="600" decoding="async">
         <canvas id="mascot" aria-hidden="true"></canvas>
         <div class="caption" id="caption" aria-hidden="true"></div>
         <div class="spin-hint" aria-hidden="true">↻ drag to spin</div>
         <button class="snd" id="snd" type="button" aria-pressed="false" hidden><span class="ico-off">🔇</span><span class="ico-on">🔊</span> <b>Sound</b><span class="tap">Tap for sound</span></button>
+        </div>
       </div>
       </div>
 
@@ -752,6 +761,9 @@ try {
   const m = createMascot(canvas);
   window.hearMascot = m;
   requestAnimationFrame(() => wrap.classList.add("live"));
+  // dock to the corner once the hero slot has scrolled up out of view; back in place when it returns
+  const stage = wrap.querySelector(".mascot-stage");
+  new IntersectionObserver(([e]) => stage.classList.toggle("docked", e.intersectionRatio < 0.15 && e.boundingClientRect.top < 0), { threshold: [0, 0.15, 0.5] }).observe(wrap);
   // 2D power-up effects around the canvas
   const fx = document.getElementById("fx"), hero = document.querySelector(".hero");
   const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
