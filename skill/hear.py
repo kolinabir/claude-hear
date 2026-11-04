@@ -19,10 +19,16 @@ from pathlib import Path
 STAGES = Path(__file__).resolve().parent / "stages"
 QUIET_LABELS = {"neutral", "other", "unknown"}
 NOT_EVENTS = {"speech", "silence", "music", "singing"}
-# CED (AudioSet) labels that are not events worth listing: speech itself, silence, and music (CLAP covers music)
-CED_SKIP = {"Speech", "Speech synthesizer", "Narration, monologue", "Conversation", "Male speech, man speaking",
-            "Female speech, woman speaking", "Child speech, kid speaking", "Silence", "Music", "Inside, small room",
-            "Inside, large room or hall", "Outside, urban or manmade", "Outside, rural or natural"}
+# CED (AudioSet) label groups from the AudioSet ontology: music-family labels become a "music style" line, speech,
+# silence and room/channel labels are never events, laughter counts at a lower bar because it matters most.
+CED = json.loads((STAGES / "ced_groups.json").read_text())
+CED_SKIP = set(CED["speech"]) | {"Silence", "Echo", "Reverberation", "Radio", "Television", "Static", "Sidetone",
+                                 "Mains hum", "Hum", "Harmonic", "Inside, small room", "Inside, large room or hall",
+                                 "Inside, public space", "Outside, urban or manmade", "Outside, rural or natural",
+                                 "Field recording", "Environmental noise", "Sound effect", "Pulse", "Throbbing"}
+CED_MUSIC, CED_LAUGH = set(CED["music"]), set(CED["laughter"])
+NOT_STYLE = {"Music", "Mantra", "Chant"}  # "Mantra" fires on any voice over a music bed; bare "Music" says nothing
+HALLUCINATION_WPS = 12  # real speech tops out around 8 words/s; Whisper's repeated-token loops run far above
 
 
 def start(stage, *args):
@@ -79,12 +85,21 @@ def mark(w, ref_db, ref_hz):
 
 
 def sound_spans(sounds):
-    """Collapse per-second windows into spans of possible non-speech events (CED labels; CLAP for older runs)."""
-    spans, open_ = [], {}   # open_: the latest span per label, so a label that alternates with another still joins up
+    """Collapse per-second windows into spans of possible non-speech events (CED labels; CLAP for older runs).
+
+    Returns (event spans, windows with prominent music, {music-style label: max prob})."""
+    spans, open_, styles = [], {}, {}   # open_: the latest span per label, so a label that alternates with another still joins up
     for w in sounds["windows"]:
         ced = "events" in w
         for label, p in (w["events"] if ced else w["top"]):
-            if (label in CED_SKIP or p < 0.1) if ced else (label in NOT_EVENTS or p < 0.2):
+            if ced:
+                if label in CED_MUSIC:
+                    if label not in NOT_STYLE:
+                        styles[label] = max(styles.get(label, 0), p)
+                    continue
+                if label in CED_SKIP or p < (0.15 if label in CED_LAUGH else 0.25):
+                    continue
+            elif label in NOT_EVENTS or p < 0.2:
                 continue
             last = open_.get(label)
             if last and w["t"] <= last["end"]:
@@ -93,7 +108,41 @@ def sound_spans(sounds):
                 open_[label] = {"label": label, "start": w["t"], "end": w["t"] + sounds["win"], "p": p}
                 spans.append(open_[label])
     loud_music = [w for w in sounds["windows"] if w["music"] >= 0.5]
-    return sorted(spans, key=lambda s: s["start"]), loud_music
+    return sorted(spans, key=lambda s: s["start"]), loud_music, styles
+
+
+def speech_evidence(sounds, a, b):
+    """True unless CLAP saw no speech in any window overlapping [a, b] (used to drop Whisper's music hallucinations)."""
+    if not sounds:
+        return True
+    hits = [w for w in sounds["windows"] if w["t"] < b and w["t"] + sounds["win"] > a]
+    return not hits or any(p >= 0.15 for w in hits for label, p in w["top"] if label == "speech")
+
+
+def ranges(times, win):
+    """[0, 1, 2, 7] with a 2 s window -> ['00:00.0–00:04.0', '00:07.0–00:09.0']."""
+    out = []
+    for t in times:
+        if out and t <= out[-1][1]:
+            out[-1][1] = t + win
+        else:
+            out.append([t, t + win])
+    return [f"{ts(a)}–{ts(b)}" for a, b in out]
+
+
+def sound_lines(sounds):
+    spans, loud, styles = sound_spans(sounds)
+    bed = sum(w["music"] >= 0.2 for w in sounds["windows"]) / max(1, len(sounds["windows"]))
+    L = ["## Sounds (model guesses, not certain)",
+         f"- background music: {'likely' if bed >= 0.3 else 'possible' if bed >= 0.1 else 'not detected'} ({bed:.0%} of the clip)"]
+    style = [f"{k.lower()} ({p:.2f})" for k, p in sorted(styles.items(), key=lambda kv: -kv[1])[:3] if p >= 0.2]
+    if bed >= 0.1 and style:
+        L.append("- music style guess: " + ", ".join(style))
+    if loud:
+        L.append("- music or singing prominent at: " + ", ".join(ranges([w["t"] for w in loud], sounds["win"])))
+    for s in spans:
+        L.append(f"- [{ts(s['start'])}–{ts(s['end'])}] possibly {s['label'].lower()} ({s['p']:.2f})")
+    return L + [""]
 
 
 def render(out, info):
@@ -105,6 +154,21 @@ def render(out, info):
     speakers = load(out, "speakers") or [{"speaker": "S1"}] * len(segs)
     emotions = load(out, "emotion") or [None] * len(segs)
     sounds = load(out, "sounds")
+
+    # Whisper hallucinates on music and silence: token loops at absurd speed, or "Thank you." where nobody speaks
+    def real(s):
+        a, b = s["words"][0]["start"], s["words"][-1]["end"]
+        return len(s["words"]) / max(b - a, 0.05) <= HALLUCINATION_WPS and speech_evidence(sounds, a, b)
+    keep = [real(s) for s in segs]
+    dropped = keep.count(False)
+    segs, speakers, emotions = ([x for x, k in zip(xs, keep) if k] for xs in (segs, speakers, emotions))
+    words = [w for s in segs for w in s["words"]]
+    if not words:
+        L = [f"# Hearing report: {info['file']}", "", f"- duration: {info['duration']:.1f} s · no speech found"
+             + (f" ({dropped} Whisper line{'s' if dropped > 1 else ''} dropped as likely hallucination)" if dropped else ""), ""]
+        (out / "hearing.md").write_text("\n".join(L + (sound_lines(sounds) if sounds else [])))
+        (out / "words.json").write_text("[]")
+        return
 
     # per-speaker reference pitch, so ↑/↓ mean "unusual for this person"
     by_spk = {}
@@ -125,6 +189,7 @@ def render(out, info):
          f"- duration: {info['duration']:.1f} s · language: {asr.get('language')} · words: {len(words)}"
          f" · average pace: {round(len(words) / span * 60) if span else 0} wpm",
          f"- unsure words [?]: {sum(w['probability'] < 0.5 for w in words)}"
+         + (f" · {dropped} Whisper line{'s' if dropped > 1 else ''} dropped as likely hallucination" if dropped else "")
          + (" · transcribed from the voice with music removed" if info["separated"] else ""), ""]
 
     if load(out, "speakers"):
@@ -136,16 +201,7 @@ def render(out, info):
         L.append("")
 
     if sounds:
-        spans, loud = sound_spans(sounds)
-        bed = sum(w["music"] >= 0.2 for w in sounds["windows"]) / max(1, len(sounds["windows"]))
-        L.append("## Sounds (model guesses, not certain)")
-        L.append(f"- background music: {'likely' if bed >= 0.3 else 'possible' if bed >= 0.1 else 'not detected'}"
-                 f" ({bed:.0%} of the clip)")
-        if loud:
-            L.append("- music or singing prominent at: " + ", ".join(ts(w["t"]) for w in loud))
-        for s in spans:
-            L.append(f"- [{ts(s['start'])}–{ts(s['end'])}] possibly {s['label'].lower()} ({s['p']:.2f})")
-        L.append("")
+        L += sound_lines(sounds)
 
     L += ["## Timeline", "",
           "Legend: **word** louder · (word) quieter · ↑/↓ pitch well above/below that speaker's normal · "

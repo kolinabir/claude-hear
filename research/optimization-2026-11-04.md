@@ -70,8 +70,26 @@ still lower. Cutting pyin's 4-process pool would help more, see below.
   beep, the noise burst and a "sound effect" around the gap; one false "radio (0.22)". The three speech-only
   clips gained no events. Cost: +0.2 s, 10 MB model, 49 MB download, sounds stage still ~0.3 GB.
 
+## Round 3: eight real videos from Downloads (reels, phone recordings, WhatsApp, a music-only piece)
+
+What the reports got wrong, and the fix for each:
+
+| problem seen | clip | fix |
+|---|---|---|
+| 20–40 "possibly X" lines per clip: mantra, radio, vehicle, heart murmur, quack... at 0.1–0.2 | every clip with a music bed | CED events listed from 0.25 (laughter from 0.15); music-family labels (150, from the AudioSet ontology, shipped as `ced_groups.json`) go to one "music style guess" line instead; room/channel labels (echo, radio, static...) never listed |
+| "Thank you." twice on a music-only clip, with an emotion guess | Minimal Tech Pulse | lines dropped when CLAP saw no speech in any overlapping window; the header counts them; a speech-free clip still gets its Sounds section |
+| a 25-word token loop in 0.1 s (56,400 wpm), which also created a phantom second speaker | Facebook explainer | lines over 12 words/s dropped |
+| "music or singing prominent at:" listing 50 timestamps | music clip | collapsed to ranges |
+| emotion stage at 2.25 GB on a 30 s line, whole run peaking at 2.7 GB | Facebook explainer | emotion input capped at 15 s per line: 1.5 GB, run peak back to 2.05 GB |
+
+After: the music clip reads "no speech found (2 Whisper lines dropped) · ambient music (0.77), new-age, trance";
+the Minecraft reel keeps "snicker (0.56), chuckle (0.36)"; the speech-only test clips' timelines are unchanged.
+Not fixed: a 4 % "S2" on one reel and a 60/40 split on a single-voice WhatsApp video (130 vs 134 Hz) are
+probably the same person over music; the faint test beep (0.12) now falls under the event threshold.
+
 ## Still possible
 
+- Speaker split under music (the two cases above): untested ideas, run separation only on the doubtful lines.
 - CPU-only Windows/Linux: not measured here; the same torch removal applies.
 - CED on real music: untested (the test bed is synthetic sines, which it calls "sine wave" / "synthesizer").
 

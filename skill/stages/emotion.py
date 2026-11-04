@@ -11,7 +11,7 @@ import numpy as np
 
 from common import SR, load, read, save
 
-MIN_S, MAX_S = 1.5, 30.0  # shorter lines are too little to judge; the model was checked up to 30 s
+MIN_S, MAX_S = 1.5, 15.0  # shorter lines are too little to judge; 15 s is plenty and keeps RAM ~1.2 GB (30 s lines hit 2.3 GB)
 
 out = Path(sys.argv[1])
 t0 = time.time()
