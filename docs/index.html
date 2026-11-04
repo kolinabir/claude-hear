@@ -879,7 +879,6 @@ try {
       },
     };
   })();
-  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) addEventListener("hear:burst", () => fxLayer.blasts());
 
   // power-up, step 0: a meteor streaks in from the top-left corner of the screen and hits the mascot
   function meteor(onHit) {
@@ -923,7 +922,7 @@ try {
         head.addColorStop(0, "rgba(255,255,255,1)"); head.addColorStop(0.3, "rgba(170,255,170,.9)"); head.addColorStop(1, "rgba(131,253,128,0)");
         g.fillStyle = head; g.beginPath(); g.arc(x, y, 34, 0, Math.PI * 2); g.fill();
       }
-      if (k >= 1 && !hit) { hit = true; hitAt = now; trail.length = 0; onHit(); fxLayer.impact(tx, ty); }
+      if (k >= 1 && !hit) { hit = true; hitAt = now; trail.length = 0; onHit(); fxLayer.impact(tx, ty); fxLayer.blasts(); }
       if (hit) {                                                    // impact flash ring
         const h = (now - hitAt) / 380;
         g.strokeStyle = `rgba(200,255,200,${Math.max(0, 1 - h)})`; g.lineWidth = 6 * (1 - h) + 1;
