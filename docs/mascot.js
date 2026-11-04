@@ -311,9 +311,9 @@ export function createMascot(canvas, { still = false } = {}) {
     emitFx("hear:burst");
     later(1000, () => {                                        // the camera glides in to watch each ear grow
       const [left, right] = ears;
-      camTo(right.side * 0.55, 0.45, 6.0, right.side * 0.75, 0.2);   // close enough to watch the ear, the face still in frame
+      camTo(right.side * 0.9, 0.4, 7.3, 0, 0.08);   // swing toward the ear but aim at the centre: aiming sideways would force the fit clamp to back off
       later(420, () => growEar(right, false));
-      later(1550, () => { camTo(left.side * 0.55, 0.45, 6.0, left.side * 0.75, 0.2); later(420, () => growEar(left, true)); });
+      later(1550, () => { camTo(left.side * 0.9, 0.4, 7.3, 0, 0.08); later(420, () => growEar(left, true)); });
     });
   }
 
