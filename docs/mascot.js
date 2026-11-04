@@ -93,6 +93,10 @@ export function createMascot(canvas, { still = false } = {}) {
   const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 50);
   camera.position.copy(CAM);
   camera.lookAt(0, 0.05, 0);
+  // camera rig: it can glide in close (e.g. to watch an ear grow) and back out
+  const cam = { x: new Spring(CAM.x, 34, 11), y: new Spring(CAM.y, 34, 11), z: new Spring(CAM.z, 34, 11), lx: new Spring(0, 34, 11), ly: new Spring(0.05, 34, 11) };
+  const camTo = (x, y, z, lx, ly) => { cam.x.t = x; cam.y.t = y; cam.z.t = z; cam.lx.t = lx; cam.ly.t = ly; };
+  const camHome = () => camTo(CAM.x, CAM.y, CAM.z, 0, 0.05);
 
   const key = new THREE.DirectionalLight(0xffffff, 1.7); key.position.set(2.5, 4, 5);
   const rim = new THREE.DirectionalLight(0x00d3fb, 2.4); rim.position.set(-4, 2.5, -3);
@@ -175,10 +179,42 @@ export function createMascot(canvas, { still = false } = {}) {
   const mouth = new THREE.Mesh(new THREE.CapsuleGeometry(0.026, 0.17, 4, 8), ink);
   mouth.rotation.z = Math.PI / 2;
   mouth.position.set(0, -0.24, faceZ);
-  const oh = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.11, 0.05, 3, 0.03), ink);   // surprised: a small open mouth
-  oh.position.set(0, -0.25, faceZ);
+  // an open mouth: dark oval with a tongue at the bottom (a flat black box read as a moustache)
+  const mouthIn = new THREE.MeshBasicMaterial({ color: 0x3a0c0a }), tongue = new THREE.MeshBasicMaterial({ color: 0xc8564c });
+  const openMouth = (w, h) => {
+    const g = new THREE.Group(), ball = new THREE.SphereGeometry(1, 24, 12);
+    const hole = new THREE.Mesh(ball, mouthIn); hole.scale.set(w, h, 0.02);
+    const t = new THREE.Mesh(ball, tongue); t.scale.set(w * 0.55, h * 0.36, 0.022); t.position.set(0, -h * 0.5, 0.004);
+    g.add(hole, t);
+    return g;
+  };
+  const oh = openMouth(0.06, 0.075);                                                   // surprised: a small "o"
+  oh.position.set(0, -0.27, faceZ);
   oh.visible = false;
   head.add(mouth, oh);
+  const scream = openMouth(0.15, 0.17);
+  scream.position.set(0, -0.3, faceZ);
+  scream.visible = false;
+  head.add(scream);
+  // lightning crackling around the body while it powers up
+  const BOLTS = 5, SEGS = 6;
+  const boltPos = new Float32Array(BOLTS * SEGS * 2 * 3);
+  const boltGeo = new THREE.BufferGeometry(); boltGeo.setAttribute("position", new THREE.BufferAttribute(boltPos, 3));
+  const bolts = new THREE.LineSegments(boltGeo, lightBlend(new THREE.LineBasicMaterial({ color: 0xc8fff0, transparent: true, opacity: 0, depthWrite: false })));
+  bolts.frustumCulled = false;
+  scene.add(bolts);
+  function zap() {                                     // redraw jagged bolts at random spots around the body
+    let o = 0;
+    for (let b = 0; b < BOLTS; b++) {
+      const a = Math.random() * Math.PI * 2;
+      let x = Math.cos(a) * 1.25, y = Math.sin(a) * 0.95 + 0.05, z = 0.3 + Math.random() * 0.4;
+      for (let k = 0; k < SEGS; k++) {
+        const nx = x + Math.cos(a) * 0.12 + (Math.random() - 0.5) * 0.28, ny = y + Math.sin(a) * 0.12 + (Math.random() - 0.5) * 0.28;
+        boltPos.set([x, y, z, nx, ny, z], o); o += 6; x = nx; y = ny;
+      }
+    }
+    boltGeo.attributes.position.needsUpdate = true;
+  }
 
   // soft contact shadow
   const sc = document.createElement("canvas"); sc.width = sc.height = 128;
@@ -211,12 +247,13 @@ export function createMascot(canvas, { still = false } = {}) {
     tilt: new Spring(0, 90, 9), nod: new Spring(0, 110, 10), turn: new Spring(0, 45, 10),
     open: new Spring(1, 320, 24), size: new Spring(1, 140, 8), brow: new Spring(-0.04, 160, 10),
     lean: new Spring(0, 55, 9),
+    clench: new Spring(0, 90, 11), yell: new Spring(0, 120, 12),
     aura: new Spring(0, 30, 9), auraScale: new Spring(1, 60, 7), bodyGlow: new Spring(0, 40, 9), eyeGlow: new Spring(0, 60, 16),
   };
   let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
   let phase = "idle", chargeStart = 0, chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
   const sfx = createSfx();
-  const CHARGE = 2.4;                                       // seconds of charging before the burst
+  const CHARGE = 3.2;                                       // seconds of charging before the burst
   let cupSide = 0, startledUntil = 0;
   let spinStart = -9, dragging = false, dragX = 0, dragMoved = 0, dragVel = 0;
   const SPIN = 1.2;                                         // seconds for the 360° showcase turn
@@ -253,7 +290,10 @@ export function createMascot(canvas, { still = false } = {}) {
   // step 2: the burst. Aura explodes, eyes ignite, everything glows.
   function powerBurst() {
     phase = "burst";
-    s.squash.t = 1; s.squash.kick(-3);
+    s.clench.t = 0; s.yell.t = 0; gaze = null;
+    s.squash.t = 1; s.squash.v = 1.28; s.squash.vel = 0;           // freeze on the stretched pose for a beat
+    sparks.points.material.size = 0.52; later(140, () => { sparks.points.material.size = 0.26; });   // smear frame
+    camTo(0, 0.3, 7.4, 0, 0.1); later(160, () => camTo(0, 0.35, 8.6, 0, 0.05));                    // punch in, ease back
     later(90, () => {
       s.hop.kick(4); s.squash.kick(4.5);
       arms.forEach(a => a.wave.kick(a.side * 16));
@@ -269,7 +309,12 @@ export function createMascot(canvas, { still = false } = {}) {
     burstSparks(0, 0.1, 90, 6.5, COL.jade);
     burstSparks(0, 0.1, 40, 5, COL.white);
     emitFx("hear:burst");
-    later(1000, () => ears.forEach((e, i) => later(i * 280, () => growEar(e, i === 1))));
+    later(1000, () => {                                        // the camera glides in to watch each ear grow
+      const [left, right] = ears;
+      camTo(right.side * 0.55, 0.45, 6.0, right.side * 0.75, 0.2);   // close enough to watch the ear, the face still in frame
+      later(420, () => growEar(right, false));
+      later(1550, () => { camTo(left.side * 0.55, 0.45, 6.0, left.side * 0.75, 0.2); later(420, () => growEar(left, true)); });
+    });
   }
 
   // step 3: the ears grow out of the head in two pulses of energy
@@ -283,7 +328,7 @@ export function createMascot(canvas, { still = false } = {}) {
       shake = Math.max(shake, last ? 0.14 : 0.09);
       burstSparks(e.side * 1.15, 0.26 + root.position.y, last ? 40 : 28, 4.5, COL.jade);
       emitFx(last ? "hear:impact2" : "hear:impact");
-      if (last) later(450, explore);
+      if (last) later(650, () => { camTo(0, 0.3, 7.6, 0, 0.1); explore(); });
     });
   }
 
@@ -303,7 +348,7 @@ export function createMascot(canvas, { still = false } = {}) {
     phase = "explore";
     exploreEar(1, 0);                                  // right ear first
     exploreEar(0, 900);                                // then the left
-    later(1750, () => { gaze = null; spinStart = t; sfx.whoosh(SPIN / slow); s.hop.kick(1.6); arms.forEach(a => a.wave.kick(a.side * 6)); });   // 360° turn
+    later(1750, () => { camHome(); gaze = null; spinStart = t; sfx.whoosh(SPIN / slow); s.hop.kick(1.6); arms.forEach(a => a.wave.kick(a.side * 6)); });   // 360° turn
     later(1750 + SPIN * 1000 + 120, () => { s.nod.kick(3); s.brow.t = -0.06; smirkUntil = t + 3; });
     later(1750 + SPIN * 1000 + 400, () => {
       phase = "idle";
@@ -316,10 +361,11 @@ export function createMascot(canvas, { still = false } = {}) {
   function startCharge() {
     phase = "charge";
     chargeStart = t; chargeUntil = t + CHARGE;
-    s.squash.t = 0.84; s.open.t = 0.3; s.brow.t = -0.2;     // crouch, narrow eyes, determined brows
-    s.aura.t = 0.35; s.auraScale.v = 0.7; s.auraScale.t = 1;
+    s.squash.t = 0.82; s.open.t = 0.3; s.brow.t = -0.24; s.clench.t = 1;   // beat 1: crouch, fists clenched, eyes narrowed
+    s.aura.t = 0.25; s.auraScale.v = 0.7; s.auraScale.t = 1;
+    camTo(0, 0.25, 8.3, 0, 0.05);                                          // slow push-in while it charges
     emitFx("hear:charge");
-    sfx.riser(CHARGE / slow);
+    sfx.riser(CHARGE * 0.82 / slow);                                       // the sound cuts out for the frozen hold
     later(CHARGE * 1000, powerBurst);
   }
 
@@ -327,7 +373,7 @@ export function createMascot(canvas, { still = false } = {}) {
     cupSide = side;
     ears.forEach(e => { const on = e.side === side; e.grow.t = on ? 1.6 : 1; if (on) e.grow.kick(3); e.perk.t = on ? 1.05 : 1; });
     arms.forEach(a => { a.reach.t = a.side === side ? 0.82 : 0; });
-    s.lean.t = -side * 0.17; s.turn.t = -side * 0.38;
+    s.lean.t = -side * 0.26; s.turn.t = -side * 0.38;
     s.open.t = 0.42;
   }
   function uncup() {
@@ -346,7 +392,7 @@ export function createMascot(canvas, { still = false } = {}) {
       listening = false; phase = "incoming"; cupSide = 0;
       ears.forEach(e => { e.grow.v = e.grow.t = 0; e.grow.vel = 0; e.pivot.visible = false; e.hot = 0; });
       arms.forEach(a => { a.reach.t = 0; });
-      s.lean.t = 0; s.turn.t = 0; s.aura.t = 0;
+      s.lean.t = 0; s.turn.t = 0; s.aura.t = 0; s.clench.t = 0; s.yell.t = 0; camHome();
       gaze = { x: -0.85, y: 0.85 };
       s.size.t = 1.25; sizeUntil = t + 30; ohUntil = t + 30; s.open.t = 1; s.squash.t = 0.92;
     },
@@ -428,12 +474,28 @@ export function createMascot(canvas, { still = false } = {}) {
     // charging: energy streams in, the body trembles
     const charging = t < chargeUntil;
     const ck = charging ? Math.min(1, (t - chargeStart) / CHARGE) : 0;   // charge level, 0 → 1
+    const yelling = charging && ck > 0.3 && ck < 0.82, holding = charging && ck >= 0.82;
+    bolts.material.opacity = 0;
     if (charging) {
-      s.aura.t = 0.35 + 0.65 * ck; s.auraScale.t = 1 + 0.2 * ck;
-      s.bodyGlow.t = 0.4 * ck * ck;
-      s.eyeGlow.t = ck > 0.72 ? 0.7 + Math.sin(t * 38) * 0.5 : 0;       // eyes flicker just before the burst
-      if (ck > 0.6) shake = Math.max(shake, (ck - 0.6) * 0.12);
-      const rate = Math.round((lowPoly ? 5 : 12) * (0.35 + 1.5 * ck));
+      // beat 2: the scream. Head back, eyes squeezed, aura roaring, debris rising, lightning.
+      // beat 3: freeze. Silence, everything stops mid-scream, eyes flare open and glow.
+      s.yell.t = ck > 0.3 ? 1 : 0;
+      gaze = yelling ? { x: 0, y: 0.6 } : holding ? { x: 0, y: 0.15 } : null;
+      s.open.t = yelling ? 0.12 : holding ? 1.15 : 0.3;
+      s.eyeGlow.t = holding ? 2.2 : 0;
+      s.aura.t = ck < 0.3 ? 0.25 : 0.4 + 0.6 * Math.min(1, (ck - 0.3) / 0.5); s.auraScale.t = 1 + 0.35 * ck;
+      s.bodyGlow.t = 0.45 * ck * ck;
+      if (yelling) shake = Math.max(shake, 0.03 + (ck - 0.3) * 0.18);
+      if (yelling && Math.random() < 0.45) { zap(); bolts.material.opacity = 0.9; }
+      if (yelling) {                                                         // flame aura + debris floating up
+        const fr = lowPoly ? 6 : 14;
+        for (let i = 0; i < fr; i++) {
+          const a = Math.random() * Math.PI * 2, r = 1.1 + Math.random() * 0.3;
+          flames.emit(Math.cos(a) * r, -1.0 + Math.random() * 0.3, Math.sin(a) * r * 0.5, -Math.cos(a) * 0.35, 2.6 + Math.random() * 2.6, 0, 0.5 + Math.random() * 0.35, Math.random() < 0.35 ? COL.white : COL.jade);
+        }
+        if (Math.random() < 0.5) sparks.emit((Math.random() - 0.5) * 3.2, -1.05, (Math.random() - 0.5) * 1.2, 0, 0.4 + Math.random() * 0.9, 0, 1.4, COL.white, -0.4);
+      }
+      const rate = holding ? 0 : Math.round((lowPoly ? 4 : 10) * (ck < 0.3 ? 0.5 : 1.6));
       for (let i = 0; i < rate; i++) {
         const a = Math.random() * Math.PI * 2, r = 2.3 + Math.random() * 0.8;
         const x = Math.cos(a) * r, y = Math.sin(a) * r * 0.95 + 0.1;
@@ -460,7 +522,7 @@ export function createMascot(canvas, { still = false } = {}) {
     root.scale.set(sx, sy, sx);
     const y = Math.max(-0.05, s.hop.v * 0.18) + Math.sin(t * 1.1) * 0.025;
     root.position.y = y;
-    root.position.x = charging ? (Math.random() - 0.5) * (0.015 + 0.09 * ck) : 0;   // trembling harder as it charges
+    root.position.x = yelling ? (Math.random() - 0.5) * (0.04 + 0.12 * ck) : 0;   // shaking with the scream; dead still in the hold
 
     const sp = Math.min(1, Math.max(0, (t - spinStart) / SPIN));
     const showYaw = sp > 0 && sp < 1 ? Math.PI * 2 * (sp < 0.5 ? 4 * sp ** 3 : 1 - (-2 * sp + 2) ** 3 / 2) : 0;   // ease in-out
@@ -486,7 +548,9 @@ export function createMascot(canvas, { still = false } = {}) {
 
     // mouth: firm line; a small open mouth when surprised; a one-sided smirk after powering up
     const surprised = t < ohUntil;
-    mouth.visible = !surprised; oh.visible = surprised;
+    const yellV = Math.max(0, s.yell.v);
+    scream.visible = yellV > 0.08; scream.scale.set(0.75 + yellV * 0.25, Math.max(0.05, yellV), 1);
+    mouth.visible = !surprised && !scream.visible; oh.visible = surprised && !scream.visible;
     const smirk = !surprised && t < smirkUntil ? 1 : 0;
     mouth.rotation.z = Math.PI / 2 + smirk * 0.16;
     mouth.position.x = smirk * 0.04;
@@ -500,6 +564,10 @@ export function createMascot(canvas, { still = false } = {}) {
       const r = Math.max(0, reach.v);
       pivot.rotation.z = wave.v * 0.08 + Math.sin(t * 1.9 + i * Math.PI) * 0.03 + side * r * 1.75;   // reach swings the arm up to the ear
       arm.position.x = side * (0.17 + r * 0.3);
+      arm.position.z = r * 0.38;                                   // the cupping hand sits in front of the ear
+      const c = Math.max(0, s.clench.v);
+      pivot.rotation.z += -side * c * 0.75;                        // fists pulled down tight at the sides
+      arm.scale.setScalar(1 - c * 0.15);
     });
 
     ears.forEach((e, i) => {
@@ -530,7 +598,12 @@ export function createMascot(canvas, { still = false } = {}) {
 
     // camera shake
     shake *= Math.exp(-dt * 7);
-    camera.position.set(CAM.x + (Math.random() - 0.5) * shake, CAM.y + (Math.random() - 0.5) * shake, CAM.z);
+    for (const k in cam) cam[k].step(dt);
+    // never closer than the distance that keeps the whole critter (arms, grown ears, feet) in frame
+    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const fitZ = Math.max((1.8 + Math.abs(cam.lx.v)) / (tan * camera.aspect), (1.4 + Math.abs(cam.ly.v - 0.05)) / tan);
+    camera.position.set(cam.x.v + (Math.random() - 0.5) * shake, cam.y.v + (Math.random() - 0.5) * shake, Math.max(cam.z.v, fitZ));
+    camera.lookAt(cam.lx.v, cam.ly.v, 0);
 
     const lift = Math.max(0, y);
     shadow.scale.set(1 - lift * 0.5, 0.42 * (1 - lift * 0.5), 1);

@@ -693,40 +693,20 @@ function announce(t) {
     capTimer = setTimeout(() => caption.classList.remove("on"), 1800);
   }
 }
-// the example's real recording: plays when sound is on, and the demo follows its clock
-const voice = new Audio("ears.mp3");
-voice.preload = "auto";
-window.hearVoice = voice;
-const soundOn = () => !!(window.hearMascot && window.hearMascot.soundOn && window.hearMascot.soundRunning);
-let raf, start, from = 0, withVoice = false;
+let raf, start, from = 0;
 const frame = now => {
   if (start == null) start = now - from * 1000;
-  const t = withVoice ? Math.min(voice.currentTime, DATA.dur) : Math.min((now - start) / 1000, DATA.dur);
-  const done = withVoice ? voice.ended || t >= DATA.dur : t >= DATA.dur;
-  render(done ? DATA.dur : t);
-  if (!done) raf = requestAnimationFrame(frame);
+  const t = Math.min((now - start) / 1000, DATA.dur);
+  render(t);
+  if (t < DATA.dur) raf = requestAnimationFrame(frame);
 };
 const play = (at = 0) => {
   cancelAnimationFrame(raf); from = at; start = null;
   heardCount = DATA.words.filter(w => w[2] < at).length; ended = false;
-  voice.pause();
-  withVoice = soundOn();
-  if (withVoice) {
-    voice.currentTime = at;
-    voice.play().catch(() => { withVoice = false; start = null; });   // not allowed: fall back to the clock
-  }
   dispatchEvent(new Event("hear:play"));
   raf = requestAnimationFrame(frame);
 };
 $("play").onclick = () => play(0);
-// sound switched on mid-example: the real voice joins at the same moment
-addEventListener("hear:soundon", () => {
-  if (ended || withVoice || start == null) return;
-  const t = (performance.now() - start) / 1000;
-  if (t >= DATA.dur) return;
-  voice.currentTime = t;
-  voice.play().then(() => { withVoice = true; }, () => {});
-});
 
 let playAfterPowerUp = !reduce;
 wave.onclick = e => { const r = wave.getBoundingClientRect(); play(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * DATA.dur); };
@@ -804,7 +784,7 @@ try {
     const rings = [], cracks = [], shards = [], flashes = [];
     const ensure = () => {
       if (cv) return;
-      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const dpr = innerWidth < 640 ? 0.75 : 1;                   // soft glows don't need full resolution; much cheaper
       cv = document.createElement("canvas"); cv.setAttribute("aria-hidden", "true");
       Object.assign(cv.style, { position: "fixed", inset: "0", width: "100vw", height: "100vh", pointerEvents: "none", zIndex: "39" });
       cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
@@ -975,8 +955,7 @@ try {
   snd.addEventListener("click", () => {
     const on = snd.getAttribute("aria-pressed") !== "true";
     snd.setAttribute("aria-pressed", on); store.set(on ? "1" : "0");
-    if (!on) window.hearVoice.pause();
-    m.setSound(on).then(running => { if (on && running) { showTapHint(false); dispatchEvent(new Event("hear:soundon")); } });
+    m.setSound(on).then(running => { if (on && running) showTapHint(false); });
   });
   if (wantSound) {
     const unlock = e => {
@@ -986,7 +965,6 @@ try {
       m.setSound(true).then(running => {
         showTapHint(!running);
         // sound joins from here; the sequence is never replayed (that would wreck the example mid-sentence)
-        if (running) dispatchEvent(new Event("hear:soundon"));
       });
     };
     ["pointerdown", "keydown", "touchstart"].forEach(ev => addEventListener(ev, unlock, true));
