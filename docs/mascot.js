@@ -5,6 +5,7 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { createSfx } from "./sfx.js";
 
 const COL = {
   clay: 0xb94322,                // renders close to Claude's terracotta after tone mapping
@@ -212,7 +213,9 @@ export function createMascot(canvas, { still = false } = {}) {
     aura: new Spring(0, 30, 9), auraScale: new Spring(1, 60, 7), bodyGlow: new Spring(0, 40, 9), eyeGlow: new Spring(0, 30, 9),
   };
   let listening = false, ohUntil = 0, sizeUntil = 0, blinkAt = 2, blinkEnd = 0, t = 0, twitch = 0;
-  let phase = "idle", chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
+  let phase = "idle", chargeStart = 0, chargeUntil = 0, flameUntil = 0, smirkUntil = 0, shake = 0, seq = 0, gaze = null;
+  const sfx = createSfx();
+  const CHARGE = 3.0;                                       // seconds of charging before the burst
   let spinStart = -9, dragging = false, dragX = 0, dragMoved = 0, dragVel = 0;
   const SPIN = 1.7;                                         // seconds for the 360° showcase turn
   const yaw = new Spring(0, 5, 4);                          // drag-to-rotate; drifts back to face you
@@ -255,24 +258,25 @@ export function createMascot(canvas, { still = false } = {}) {
       s.size.t = 1.2; s.size.kick(4); sizeUntil = t + 0.8;
       s.open.t = 1;
     });
-    s.bodyGlow.v = 1.1; s.eyeGlow.v = 2.6; s.eyeGlow.t = 0;
+    s.bodyGlow.v = 1.1; s.bodyGlow.t = 0; s.eyeGlow.v = 2.6; s.eyeGlow.t = 0;
+    sfx.stopRiser(); sfx.boom();
     s.aura.t = 1; s.auraScale.v = 0.6; s.auraScale.t = 1.7; s.auraScale.kick(4);
-    flameUntil = t + 1.6;
+    flameUntil = t + 2.4;
     shake = 0.22;
     power.intensity = 60;
     burstSparks(0, 0.1, 90, 6.5, COL.jade);
     burstSparks(0, 0.1, 40, 5, COL.white);
     emitFx("hear:burst");
-    later(550, () => ears.forEach((e, i) => later(i * 140, () => growEar(e, i === 1))));
+    later(1000, () => ears.forEach((e, i) => later(i * 280, () => growEar(e, i === 1))));
   }
 
   // step 3: the ears grow out of the head in two pulses of energy
   function growEar(e, last) {
     e.pivot.visible = true; e.hot = 1; e.landT = t;
-    e.grow.t = 0.5; e.grow.kick(5);                                          // pulse 1: sprout
+    e.grow.t = 0.5; e.grow.kick(5); sfx.bloop(false);                        // pulse 1: sprout
     burstSparks(e.side * 1.1, 0.26 + root.position.y, 16, 2.5, COL.white);
-    later(300, () => {                                                       // pulse 2: full size, with a shockwave
-      e.grow.t = 1; e.grow.kick(9); e.landT = t;
+    later(500, () => {                                                       // pulse 2: full size, with a shockwave
+      e.grow.t = 1; e.grow.kick(9); e.landT = t; sfx.bloop(true);
       s.squash.kick(-2.6); e.rot.kick(-e.side * 3);
       shake = Math.max(shake, last ? 0.14 : 0.09);
       burstSparks(e.side * 1.15, 0.26 + root.position.y, last ? 40 : 28, 4.5, COL.jade);
@@ -283,7 +287,7 @@ export function createMascot(canvas, { still = false } = {}) {
 
   // step 4: it notices its new ears and explores them: look, reach, touch, pat
   function touchEar(e) {
-    e.rot.kick(e.side * 3.2); e.perk.kick(3.2); e.touchT = t;
+    e.rot.kick(e.side * 3.2); e.perk.kick(3.2); e.touchT = t; sfx.pop();
     s.squash.kick(-0.9);
     burstSparks(e.side * 1.12, 0.24 + root.position.y, 8, 1.8, COL.white);
   }
@@ -299,7 +303,7 @@ export function createMascot(canvas, { still = false } = {}) {
     phase = "explore";
     exploreEar(1, 0);                                  // right ear first
     exploreEar(0, 1350);                               // then the left
-    later(2650, () => { gaze = null; spinStart = t; s.hop.kick(1.6); arms.forEach(a => a.wave.kick(a.side * 6)); });   // 360° turn
+    later(2650, () => { gaze = null; spinStart = t; sfx.whoosh(SPIN / slow); s.hop.kick(1.6); arms.forEach(a => a.wave.kick(a.side * 6)); });   // 360° turn
     later(2650 + SPIN * 1000 + 120, () => { s.nod.kick(3); s.brow.t = -0.06; smirkUntil = t + 3; });
     later(2650 + SPIN * 1000 + 600, () => {
       phase = "idle";
@@ -315,16 +319,18 @@ export function createMascot(canvas, { still = false } = {}) {
       listening = false; phase = "charge";
       ears.forEach(e => { e.grow.v = e.grow.t = 0; e.grow.vel = 0; e.pivot.visible = false; e.hot = 0; });
       arms.forEach(a => { a.reach.t = 0; }); gaze = null;
-      chargeUntil = t + 1.4;
+      chargeStart = t; chargeUntil = t + CHARGE;
       s.squash.t = 0.84; s.open.t = 0.3; s.brow.t = -0.2;     // step 1: crouch, narrow eyes, determined brows
-      s.aura.t = 0.75; s.auraScale.v = 0.7; s.auraScale.t = 1;
+      s.aura.t = 0.35; s.auraScale.v = 0.7; s.auraScale.t = 1;
       emitFx("hear:charge");
-      later(1400, powerBurst);
+      sfx.riser(CHARGE / slow);
+      later(CHARGE * 1000, powerBurst);
     },
     // anticipation: crouch, then spring up with ears forward
     listen() {
       if (phase !== "idle") return;
       listening = true;
+      sfx.tick();
       s.squash.kick(-3.2);
       later(130, () => {
         s.hop.kick(2.4); s.squash.kick(3);
@@ -341,6 +347,7 @@ export function createMascot(canvas, { still = false } = {}) {
       if (end === "↗") s.tilt.kick(4);
       if (end === "↘") s.nod.kick(3.2);
       if (emo) {
+        sfx.huh();
         s.size.t = 1.25; s.size.kick(4); sizeUntil = t + 1.4; ohUntil = t + 1.4; s.hop.kick(1.4);
         arms.forEach(a => a.wave.kick(a.side * 8));
       }
@@ -356,12 +363,16 @@ export function createMascot(canvas, { still = false } = {}) {
     },
     boop() {
       if (dragMoved > 6) return;                       // that was a drag, not a click
+      sfx.boing();
       s.squash.kick(-4);
       ears.forEach(e => e.rot.kick(e.side * 3));
       arms.forEach(a => a.wave.kick(a.side * 8));
       blinkEnd = t + 0.22;
       later(120, () => s.hop.kick(1.8));
     },
+    // sound: off until the visitor turns it on (browsers block sound before a click)
+    setSound(v) { sfx.set(v); },
+    get soundOn() { return sfx.on; },
     hop() { s.squash.kick(-2); later(100, () => { s.hop.kick(1.8); s.squash.kick(2); }); },
   };
 
@@ -374,8 +385,13 @@ export function createMascot(canvas, { still = false } = {}) {
 
     // charging: energy streams in, the body trembles
     const charging = t < chargeUntil;
+    const ck = charging ? Math.min(1, (t - chargeStart) / CHARGE) : 0;   // charge level, 0 → 1
     if (charging) {
-      const rate = lowPoly ? 5 : 12;
+      s.aura.t = 0.35 + 0.65 * ck; s.auraScale.t = 1 + 0.2 * ck;
+      s.bodyGlow.t = 0.4 * ck * ck;
+      s.eyeGlow.t = ck > 0.72 ? 0.7 + Math.sin(t * 38) * 0.5 : 0;       // eyes flicker just before the burst
+      if (ck > 0.6) shake = Math.max(shake, (ck - 0.6) * 0.12);
+      const rate = Math.round((lowPoly ? 5 : 12) * (0.35 + 1.5 * ck));
       for (let i = 0; i < rate; i++) {
         const a = Math.random() * Math.PI * 2, r = 2.3 + Math.random() * 0.8;
         const x = Math.cos(a) * r, y = Math.sin(a) * r * 0.95 + 0.1;
@@ -402,7 +418,7 @@ export function createMascot(canvas, { still = false } = {}) {
     root.scale.set(sx, sy, sx);
     const y = Math.max(-0.05, s.hop.v * 0.18) + Math.sin(t * 1.1) * 0.025;
     root.position.y = y;
-    root.position.x = charging ? (Math.random() - 0.5) * 0.045 : 0;   // trembling with power
+    root.position.x = charging ? (Math.random() - 0.5) * (0.015 + 0.09 * ck) : 0;   // trembling harder as it charges
 
     const sp = Math.min(1, Math.max(0, (t - spinStart) / SPIN));
     const showYaw = sp > 0 && sp < 1 ? Math.PI * 2 * (sp < 0.5 ? 4 * sp ** 3 : 1 - (-2 * sp + 2) ** 3 / 2) : 0;   // ease in-out
